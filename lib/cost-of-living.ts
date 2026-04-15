@@ -30,3 +30,8 @@ const RAW: StateColData[] = [
 ];
 export const COL_DATA_UNIQUE: StateColData[] = RAW.sort((a,b)=>a.colIndex-b.colIndex);
 export function getColForState(state: string): StateColData | undefined { return COL_DATA_UNIQUE.find((s)=>s.state===state); }
+
+// Alphabetical by state name — use in dropdowns
+export const COL_DATA_BY_NAME: StateColData[] = [...COL_DATA_UNIQUE].sort((a, b) =>
+  a.name.localeCompare(b.name),
+);

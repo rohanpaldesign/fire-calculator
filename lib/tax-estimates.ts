@@ -52,19 +52,20 @@ function calcFICA(income: number): number {
 }
 
 // --- State income tax effective rates ---
-// Approximate effective rates for a typical $75K–$120K income. No income tax = 0.
+// States with NO income tax — explicitly 0
+const NO_TAX_STATES = new Set(["AK", "FL", "NV", "SD", "TN", "TX", "WA", "WY", "NH"]);
+
+// Approximate effective rates for a typical $75K–$120K income.
 const STATE_RATES: Record<string, number> = {
-  // No state income tax
-  AK: 0, FL: 0, NV: 0, SD: 0, TN: 0, TX: 0, WA: 0, WY: 0, NH: 0,
   // Flat rate states
   CO: 0.044, IL: 0.0495, IN: 0.0305, KY: 0.040, MA: 0.050,
   MI: 0.0405, NC: 0.0475, PA: 0.0307, UT: 0.0455,
-  // Graduated — approximate effective rates
-  AL: 0.040, AR: 0.045, AZ: 0.025, CA: 0.082, CT: 0.055, DC: 0.072,
-  DE: 0.055, GA: 0.055, HI: 0.082, IA: 0.055, ID: 0.058, KS: 0.053,
-  LA: 0.042, MD: 0.055, ME: 0.063, MN: 0.072, MO: 0.052, MS: 0.047,
+  // Graduated — corrected effective rates
+  AL: 0.040, AR: 0.043, AZ: 0.025, CA: 0.082, CT: 0.055, DC: 0.072,
+  DE: 0.055, GA: 0.055, HI: 0.082, IA: 0.038, ID: 0.058, KS: 0.053,
+  LA: 0.042, MD: 0.055, ME: 0.063, MN: 0.058, MO: 0.042, MS: 0.047,
   MT: 0.065, ND: 0.015, NE: 0.062, NJ: 0.062, NM: 0.048, NY: 0.065,
-  OH: 0.035, OK: 0.050, OR: 0.088, RI: 0.055, SC: 0.070, VA: 0.057,
+  OH: 0.035, OK: 0.050, OR: 0.076, RI: 0.055, SC: 0.068, VA: 0.057,
   VT: 0.066, WI: 0.065, WV: 0.052,
 };
 
@@ -73,6 +74,8 @@ export interface TaxBreakdown {
   federalTax: number;
   ficaTax: number;
   stateTax: number;
+  stateRate: number;
+  noStateTax: boolean;
   totalTax: number;
   netIncome: number;
   effectiveRate: number;
@@ -84,11 +87,12 @@ export function estimateTaxBreakdown(
   status: FilingStatus,
 ): TaxBreakdown {
   if (grossIncome <= 0) {
-    return { grossIncome: 0, federalTax: 0, ficaTax: 0, stateTax: 0, totalTax: 0, netIncome: 0, effectiveRate: 0 };
+    return { grossIncome: 0, federalTax: 0, ficaTax: 0, stateTax: 0, stateRate: 0, noStateTax: false, totalTax: 0, netIncome: 0, effectiveRate: 0 };
   }
   const federalTax = calcFederalTax(grossIncome, status);
   const ficaTax = calcFICA(grossIncome);
-  const stateRate = STATE_RATES[state] ?? 0.05;
+  const noStateTax = NO_TAX_STATES.has(state);
+  const stateRate = noStateTax ? 0 : (STATE_RATES[state] != null ? STATE_RATES[state] : 0.05);
   const stateTax = grossIncome * stateRate;
   const totalTax = federalTax + ficaTax + stateTax;
   const netIncome = Math.max(0, grossIncome - totalTax);
@@ -97,6 +101,8 @@ export function estimateTaxBreakdown(
     federalTax: Math.round(federalTax),
     ficaTax: Math.round(ficaTax),
     stateTax: Math.round(stateTax),
+    stateRate,
+    noStateTax,
     totalTax: Math.round(totalTax),
     netIncome: Math.round(netIncome),
     effectiveRate: totalTax / grossIncome,

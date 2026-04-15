@@ -1,19 +1,19 @@
 "use client";
 import { useEffect } from "react";
 import { NumericInput } from "@/components/ui/numeric-input";
-import { Label, HintText } from "@/components/ui/label";
+import { HintText } from "@/components/ui/label";
+import { FieldLabel } from "@/components/ui/info-tooltip";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/formatters";
 import { estimateTaxBreakdown } from "@/lib/tax-estimates";
 import type { FireProfile } from "@/types/fire";
-import { Info } from "lucide-react";
+import { CheckCircle, Info } from "lucide-react";
 
 interface Props { profile: FireProfile; onChange: (patch: Partial<FireProfile>) => void; }
 
 export function IncomeSection({ profile, onChange }: Props) {
   const breakdown = estimateTaxBreakdown(profile.grossIncome, profile.location, profile.filingStatus);
 
-  // Auto-calculate take-home whenever gross, state, or filing status changes
   useEffect(() => {
     if (profile.autoTakeHome && profile.grossIncome > 0) {
       onChange({ netIncome: breakdown.netIncome });
@@ -25,12 +25,27 @@ export function IncomeSection({ profile, onChange }: Props) {
     ? Math.max(0, (profile.netIncome - profile.annualExpenses) / 12)
     : null;
 
+  const savingsRate = profile.netIncome > 0 && profile.annualExpenses > 0
+    ? (profile.netIncome - profile.annualExpenses) / profile.netIncome
+    : null;
+
+  const savingsBadge = () => {
+    if (savingsRate === null) return null;
+    if (savingsRate >= 0.5) return <Badge variant="green">Excellent</Badge>;
+    if (savingsRate >= 0.3) return <Badge variant="green">Great</Badge>;
+    if (savingsRate >= 0.15) return <Badge variant="yellow">Good</Badge>;
+    if (savingsRate >= 0) return <Badge variant="red">Low</Badge>;
+    return <Badge variant="red">Negative</Badge>;
+  };
+
   return (
     <div className="space-y-4">
       <h2 className="text-base font-semibold text-[var(--fg)]">Income</h2>
 
       <div>
-        <Label htmlFor="grossIncome">Gross Annual Income</Label>
+        <FieldLabel htmlFor="grossIncome" tooltip="Your total annual income before any taxes — salary, bonuses, freelance, etc.">
+          Gross Annual Income
+        </FieldLabel>
         <NumericInput
           id="grossIncome"
           value={profile.grossIncome}
@@ -43,7 +58,9 @@ export function IncomeSection({ profile, onChange }: Props) {
 
       <div>
         <div className="flex items-center justify-between mb-1">
-          <Label htmlFor="netIncome" className="mb-0">Net (Take-Home) Income</Label>
+          <FieldLabel htmlFor="netIncome" className="mb-0" tooltip="Your annual income after federal, state, and FICA taxes. Auto-calculated from your gross income, state, and filing status — or override manually.">
+            Net (Take-Home) Income
+          </FieldLabel>
           <button
             type="button"
             onClick={() => onChange({ autoTakeHome: !profile.autoTakeHome })}
@@ -65,7 +82,6 @@ export function IncomeSection({ profile, onChange }: Props) {
           disabled={profile.autoTakeHome}
         />
 
-        {/* Tax breakdown when auto mode is on */}
         {profile.autoTakeHome && profile.grossIncome > 0 && (
           <div className="mt-2 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-[var(--border)] p-3 text-xs space-y-1">
             <div className="flex items-center gap-1 text-[var(--fg-muted)] mb-1.5">
@@ -74,7 +90,17 @@ export function IncomeSection({ profile, onChange }: Props) {
             </div>
             <div className="flex justify-between"><span className="text-[var(--fg-muted)]">Federal income tax</span><span className="text-[var(--fg)]">−{formatCurrency(breakdown.federalTax)}</span></div>
             <div className="flex justify-between"><span className="text-[var(--fg-muted)]">FICA (SS + Medicare)</span><span className="text-[var(--fg)]">−{formatCurrency(breakdown.ficaTax)}</span></div>
-            <div className="flex justify-between"><span className="text-[var(--fg-muted)]">State ({profile.location})</span><span className="text-[var(--fg)]">−{formatCurrency(breakdown.stateTax)}</span></div>
+            {breakdown.noStateTax ? (
+              <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                <CheckCircle className="h-3 w-3" />
+                <span>No state income tax ({profile.location})</span>
+              </div>
+            ) : (
+              <div className="flex justify-between">
+                <span className="text-[var(--fg-muted)]">State ({profile.location}) {(breakdown.stateRate * 100).toFixed(1)}%</span>
+                <span className="text-[var(--fg)]">−{formatCurrency(breakdown.stateTax)}</span>
+              </div>
+            )}
             <div className="flex justify-between font-semibold border-t border-[var(--border)] pt-1 mt-1">
               <span className="text-[var(--fg)]">Take-home</span>
               <span className="text-emerald-600 dark:text-emerald-400">{formatCurrency(breakdown.netIncome)}</span>
@@ -84,24 +110,18 @@ export function IncomeSection({ profile, onChange }: Props) {
         )}
       </div>
 
-      {/* Savings rate and monthly surplus */}
-      {savingsPerMonth !== null && (
+      {savingsPerMonth !== null && savingsRate !== null && (
         <div className="rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 p-3">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-emerald-700 dark:text-emerald-400 font-semibold">
-                Savings rate: {(((profile.netIncome - profile.annualExpenses) / profile.netIncome) * 100).toFixed(1)}%
+                Savings rate: {(savingsRate * 100).toFixed(1)}%
               </p>
               <p className="text-xs text-emerald-600 dark:text-emerald-500 mt-0.5">
                 {formatCurrency(savingsPerMonth)}/mo available to invest after expenses
               </p>
             </div>
-            {profile.monthlyContribution < savingsPerMonth * 0.9 && (
-              <Badge variant="yellow">Under-investing</Badge>
-            )}
-            {profile.monthlyContribution >= savingsPerMonth * 0.9 && (
-              <Badge variant="green">On track</Badge>
-            )}
+            {savingsBadge()}
           </div>
         </div>
       )}

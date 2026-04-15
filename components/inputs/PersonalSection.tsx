@@ -1,8 +1,9 @@
 "use client";
 import { NumericInput } from "@/components/ui/numeric-input";
-import { Label, HintText } from "@/components/ui/label";
+import { HintText } from "@/components/ui/label";
+import { FieldLabel } from "@/components/ui/info-tooltip";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { COL_DATA_UNIQUE } from "@/lib/cost-of-living";
+import { COL_DATA_BY_NAME } from "@/lib/cost-of-living";
 import type { FireProfile, USState } from "@/types/fire";
 
 interface Props { profile: FireProfile; onChange: (patch: Partial<FireProfile>) => void; }
@@ -14,13 +15,14 @@ export function PersonalSection({ profile, onChange }: Props) {
       <h2 className="text-base font-semibold text-[var(--fg)]">Personal</h2>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="currentAge">Current Age</Label>
+          <FieldLabel htmlFor="currentAge" tooltip="Your current age. Used to calculate how many years until you reach FIRE.">
+            Current Age
+          </FieldLabel>
           <NumericInput
             id="currentAge"
             value={profile.currentAge}
             onChange={(v) => {
               const age = Math.max(18, Math.min(80, Math.round(v)));
-              // Keep retirement age at least 1 yr ahead
               onChange({ currentAge: age, retirementAge: Math.max(profile.retirementAge, age + 1) });
             }}
             min={18}
@@ -28,7 +30,9 @@ export function PersonalSection({ profile, onChange }: Props) {
           />
         </div>
         <div>
-          <Label htmlFor="retirementAge">Target Retirement Age</Label>
+          <FieldLabel htmlFor="retirementAge" tooltip="The age you want to stop working. Early FIRE targets age 35–50; traditional retirement is 65.">
+            Target Retirement Age
+          </FieldLabel>
           <NumericInput
             id="retirementAge"
             value={profile.retirementAge}
@@ -43,7 +47,9 @@ export function PersonalSection({ profile, onChange }: Props) {
       </div>
 
       <div>
-        <Label>Filing Status</Label>
+        <FieldLabel tooltip="How you file your taxes. Married filing jointly typically has lower effective tax rates.">
+          Filing Status
+        </FieldLabel>
         <div className="flex gap-3">
           {(["single", "married"] as const).map((s) => (
             <button
@@ -63,11 +69,13 @@ export function PersonalSection({ profile, onChange }: Props) {
       </div>
 
       <div>
-        <Label htmlFor="location">State</Label>
+        <FieldLabel htmlFor="location" tooltip="Your US state. Affects cost-of-living adjustments and state income tax estimates.">
+          State
+        </FieldLabel>
         <Select value={profile.location} onValueChange={(v) => onChange({ location: v as USState })}>
           <SelectTrigger id="location"><SelectValue placeholder="Select state" /></SelectTrigger>
           <SelectContent>
-            {COL_DATA_UNIQUE.map((s) => (
+            {COL_DATA_BY_NAME.map((s) => (
               <SelectItem key={s.state} value={s.state}>{s.name} ({s.state})</SelectItem>
             ))}
           </SelectContent>

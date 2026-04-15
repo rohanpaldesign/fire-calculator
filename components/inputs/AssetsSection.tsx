@@ -1,6 +1,7 @@
 "use client";
 import { NumericInput } from "@/components/ui/numeric-input";
-import { Label, HintText } from "@/components/ui/label";
+import { HintText } from "@/components/ui/label";
+import { FieldLabel } from "@/components/ui/info-tooltip";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/formatters";
 import type { FireProfile } from "@/types/fire";
@@ -8,7 +9,6 @@ import type { FireProfile } from "@/types/fire";
 interface Props { profile: FireProfile; onChange: (patch: Partial<FireProfile>) => void; }
 
 export function AssetsSection({ profile, onChange }: Props) {
-  // Suggested monthly contribution = what's left after expenses
   const maxSavable = profile.netIncome > 0
     ? Math.max(0, Math.round((profile.netIncome - profile.annualExpenses) / 12))
     : null;
@@ -20,7 +20,9 @@ export function AssetsSection({ profile, onChange }: Props) {
       <h2 className="text-base font-semibold text-[var(--fg)]">Assets & Savings</h2>
 
       <div>
-        <Label htmlFor="currentAssets">Current Invested Assets</Label>
+        <FieldLabel htmlFor="currentAssets" tooltip="Total value of all your investment accounts today — 401k, IRA, Roth IRA, brokerage. Don't include cash savings or checking account balances.">
+          Current Invested Assets
+        </FieldLabel>
         <NumericInput
           id="currentAssets"
           value={profile.currentAssets}
@@ -32,7 +34,9 @@ export function AssetsSection({ profile, onChange }: Props) {
       </div>
 
       <div>
-        <Label htmlFor="monthlyContribution">Monthly Investment Contribution</Label>
+        <FieldLabel htmlFor="monthlyContribution" tooltip="How much you invest each month across all accounts. This is the most powerful lever for reaching FIRE faster — a higher contribution rate means compounding works harder for you.">
+          Monthly Investment Contribution
+        </FieldLabel>
         <NumericInput
           id="monthlyContribution"
           value={profile.monthlyContribution}
@@ -60,7 +64,9 @@ export function AssetsSection({ profile, onChange }: Props) {
       </div>
 
       <div>
-        <Label htmlFor="baristaIncome">Part-time Income in Semi-Retirement <span className="text-[var(--fg-muted)] font-normal">(Barista FIRE)</span></Label>
+        <FieldLabel htmlFor="baristaIncome" tooltip="Annual income from part-time work in semi-retirement (e.g. a barista job, consulting, freelance). This reduces how large your portfolio needs to be — you only need your investments to cover the gap between this income and your expenses.">
+          Part-time Income in Semi-Retirement <span className="text-[var(--fg-muted)] font-normal">(Barista FIRE)</span>
+        </FieldLabel>
         <NumericInput
           id="baristaIncome"
           value={profile.baristaPartTimeIncome ?? 0}
