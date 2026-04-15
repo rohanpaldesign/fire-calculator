@@ -3,6 +3,8 @@ export interface ExpenseCategories { housing:number; food:number; transport:numb
 export interface FireProfile {
   currentAge:number; retirementAge:number; location:USState;
   grossIncome:number; netIncome:number;
+  filingStatus:"single"|"married";
+  autoTakeHome:boolean;
   annualExpenses:number; expenseCategories?:Partial<ExpenseCategories>;
   currentAssets:number; monthlyContribution:number;
   nominalReturn:number; realReturn:number; inflationRate:number; safeWithdrawalRate:number;
