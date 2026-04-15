@@ -37,7 +37,7 @@ export function ExpensesSection({ profile, onChange }: Props) {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-base font-semibold text-[var(--fg)]">Expenses</h2>
+      <h2 className="text-base font-semibold text-[var(--fg)]">Current Monthly Expenses</h2>
 
       <div>
         <FieldLabel htmlFor="monthlyExpenses" tooltip="Your total monthly spending — rent, food, subscriptions, everything. This directly sets your FIRE number: the more you spend, the more you need to save.">

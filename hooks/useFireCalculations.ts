@@ -7,6 +7,14 @@ export function useFireCalculations(profile: FireProfile, overrides?: WhatIfOver
   return useMemo(
     () => calcFireResults(profile, overrides),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [profile.currentAge,profile.retirementAge,profile.location,profile.annualExpenses,profile.currentAssets,profile.monthlyContribution,profile.realReturn,profile.nominalReturn,profile.safeWithdrawalRate,profile.inflationRate,profile.baristaPartTimeIncome,overrides?.annualExpenses,overrides?.monthlyContribution,overrides?.realReturn],
+    [
+      profile.currentAge, profile.retirementAge, profile.location,
+      profile.annualExpenses, profile.retirementExpenses, profile.retirementExpensesMode,
+      profile.retirementLifestyleFactor, profile.retirementExpenseCategories,
+      profile.expenseCategories, profile.currentAssets, profile.monthlyContribution,
+      profile.realReturn, profile.nominalReturn, profile.safeWithdrawalRate,
+      profile.inflationRate, profile.baristaPartTimeIncome,
+      overrides?.retirementExpenses, overrides?.monthlyContribution, overrides?.realReturn,
+    ],
   );
 }

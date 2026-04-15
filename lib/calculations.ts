@@ -1,4 +1,37 @@
-import type { FireProfile, FireNumbers, FireProgress, FireTimeline, FireResults, PortfolioDataPoint, StateColData, RelocationOpportunity, WhatIfOverrides } from "@/types/fire";
+import type { FireProfile, FireNumbers, FireProgress, FireTimeline, FireResults, PortfolioDataPoint, StateColData, RelocationOpportunity, WhatIfOverrides, ExpenseCategories } from "@/types/fire";
+
+export const NATIONAL_COMFORT_RETIREMENT_BASELINE = 60000;
+
+export const RETIREMENT_CATEGORY_MULTIPLIERS: Record<keyof ExpenseCategories, { multiplier: number; label: string }> = {
+  housing:       { multiplier: 0.80, label: "Possible downsize or mortgage payoff" },
+  food:          { multiplier: 1.00, label: "Similar (more home cooking)" },
+  transport:     { multiplier: 0.55, label: "No commute, fewer work trips" },
+  healthcare:    { multiplier: 1.80, label: "Large increase pre-Medicare" },
+  entertainment: { multiplier: 1.25, label: "More leisure time" },
+  other:         { multiplier: 0.85, label: "No work-related costs" },
+};
+
+export function calcAutoRetirementExpenses(profile: FireProfile): number {
+  const { annualExpenses, expenseCategories, retirementLifestyleFactor } = profile;
+  if (expenseCategories) {
+    const catTotal = Object.values(expenseCategories).reduce((s, v) => s + (v ?? 0), 0);
+    if (catTotal > 100) {
+      let retirementCatTotal = 0;
+      for (const [key, { multiplier }] of Object.entries(RETIREMENT_CATEGORY_MULTIPLIERS)) {
+        const cat = expenseCategories[key as keyof ExpenseCategories] ?? 0;
+        retirementCatTotal += cat * multiplier;
+      }
+      const uncategorized = Math.max(0, annualExpenses - catTotal);
+      const baseAutoExpenses = retirementCatTotal + uncategorized * retirementLifestyleFactor;
+      return Math.round(baseAutoExpenses * (retirementLifestyleFactor / 0.80));
+    }
+  }
+  return Math.round(annualExpenses * retirementLifestyleFactor);
+}
+
+export function calcLocationComfortEstimate(colIndex: number): number {
+  return Math.round((NATIONAL_COMFORT_RETIREMENT_BASELINE * colIndex) / 100);
+}
 
 export function calcFireNumber(annualExpenses: number, swr: number): number {
   if (swr <= 0) return Infinity;
@@ -65,19 +98,32 @@ export function adjustedExpensesForState(baseExpenses: number, fromIndex: number
 export function calcRelocationOpportunities(profile: FireProfile, colData: StateColData[], baseYearsToFire: number | null): RelocationOpportunity[] {
   const currentStateData = colData.find((s) => s.state === profile.location);
   if (!currentStateData) return [];
+  const baseRetirementExpenses = profile.retirementExpensesMode === "auto"
+    ? calcAutoRetirementExpenses(profile)
+    : profile.retirementExpenses;
   return colData
     .filter((s) => s.state !== profile.location)
     .map((s) => {
-      const adjExpenses = adjustedExpensesForState(profile.annualExpenses, currentStateData.colIndex, s.colIndex);
+      const adjExpenses = adjustedExpensesForState(baseRetirementExpenses, currentStateData.colIndex, s.colIndex);
       const adjFireNumber = calcFireNumber(adjExpenses, profile.safeWithdrawalRate);
       const adjYears = calcYearsToFire(profile.currentAssets, profile.monthlyContribution, profile.realReturn, adjFireNumber);
-      return { targetState: s.state, targetStateName: s.name, colIndex: s.colIndex, adjustedExpenses: adjExpenses, expenseSavingsPerYear: profile.annualExpenses - adjExpenses, yearsToFireDelta: (adjYears ?? 100) - (baseYearsToFire ?? 100), yearsToFire: adjYears };
+      return {
+        targetState: s.state, targetStateName: s.name, colIndex: s.colIndex,
+        adjustedExpenses: adjExpenses,
+        expenseSavingsPerYear: baseRetirementExpenses - adjExpenses,
+        yearsToFireDelta: (adjYears ?? 100) - (baseYearsToFire ?? 100),
+        yearsToFire: adjYears,
+      };
     })
     .sort((a, b) => a.yearsToFireDelta - b.yearsToFireDelta);
 }
 
 export function calcFireResults(profile: FireProfile, overrides?: WhatIfOverrides): FireResults {
-  const expenses = overrides?.annualExpenses ?? profile.annualExpenses;
+  const effectiveRetirementExpenses = profile.retirementExpensesMode === "auto"
+    ? calcAutoRetirementExpenses(profile)
+    : profile.retirementExpenses;
+
+  const expenses = overrides?.retirementExpenses ?? effectiveRetirementExpenses;
   const monthlyContrib = overrides?.monthlyContribution ?? profile.monthlyContribution;
   const realReturn = overrides?.realReturn ?? profile.realReturn;
   const swr = profile.safeWithdrawalRate;
@@ -88,14 +134,13 @@ export function calcFireResults(profile: FireProfile, overrides?: WhatIfOverride
   const baristaExpenses = expenses - (profile.baristaPartTimeIncome ?? 0);
   const baristaFireNumber = baristaExpenses > 0 ? calcFireNumber(baristaExpenses, swr) : 0;
   const coastFireNumber = calcCoastFireNumber(fireNumber, realReturn, profile.currentAge, profile.retirementAge);
-
   const yearsToFire = calcYearsToFire(profile.currentAssets, monthlyContrib, realReturn, fireNumber);
   const timeline = buildPortfolioTimeline(profile, fireNumber, coastFireNumber, monthlyContrib);
   const coastFireAchievedAge = findCoastFireAge(timeline, coastFireNumber);
-
   const yearsAvailable = profile.retirementAge - profile.currentAge;
-  const monthlyContribNeeded = yearsToFire === null ? calcMonthlyContribNeeded(profile.currentAssets, realReturn, fireNumber, yearsAvailable) : null;
-
+  const monthlyContribNeeded = yearsToFire === null
+    ? calcMonthlyContribNeeded(profile.currentAssets, realReturn, fireNumber, yearsAvailable)
+    : null;
   const expenseReductionNeeded = yearsToFire === null ? (() => {
     let lo = 0, hi = expenses;
     for (let i = 0; i < 60; i++) {
@@ -106,10 +151,21 @@ export function calcFireResults(profile: FireProfile, overrides?: WhatIfOverride
     }
     return expenses - (lo + hi) / 2;
   })() : null;
-
   return {
     numbers: { fireNumber, coastFireNumber, leanFireNumber, fatFireNumber, baristaFireNumber },
-    progress: { fireProgress: profile.currentAssets / fireNumber, coastFireProgress: profile.currentAssets / coastFireNumber, leanFireProgress: profile.currentAssets / leanFireNumber, fatFireProgress: profile.currentAssets / fatFireNumber },
-    timeline: { yearsToFire, fireDate: yearsToFire != null ? new Date(new Date().getFullYear() + Math.ceil(yearsToFire), 0, 1) : null, coastFireAchievedAge, projectedPortfolioByYear: timeline, monthlyContribNeeded, expenseReductionNeeded },
+    progress: {
+      fireProgress: profile.currentAssets / fireNumber,
+      coastFireProgress: profile.currentAssets / coastFireNumber,
+      leanFireProgress: profile.currentAssets / leanFireNumber,
+      fatFireProgress: profile.currentAssets / fatFireNumber,
+    },
+    timeline: {
+      yearsToFire,
+      fireDate: yearsToFire != null ? new Date(new Date().getFullYear() + Math.ceil(yearsToFire), 0, 1) : null,
+      coastFireAchievedAge,
+      projectedPortfolioByYear: timeline,
+      monthlyContribNeeded,
+      expenseReductionNeeded,
+    },
   };
 }
