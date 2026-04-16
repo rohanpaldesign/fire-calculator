@@ -20,8 +20,24 @@ export function AssetsSection({ profile, onChange }: Props) {
       <h2 className="text-base font-semibold text-[var(--fg)]">Assets & Savings</h2>
 
       <div>
+        <div className="flex items-center gap-2 mb-1">
+          <label htmlFor="netWorth" className="text-sm font-medium text-[var(--fg)]">Total Net Worth</label>
+          <span className="text-[10px] font-normal px-1.5 py-0.5 rounded bg-[var(--border)] text-[var(--fg-muted)]">Optional</span>
+        </div>
+        <p className="text-xs text-[var(--fg-muted)] mb-1.5">Everything you own minus everything you owe — home equity, savings, investments, etc. Not used in FIRE calculations; shown in your snapshot.</p>
+        <NumericInput
+          id="netWorth"
+          value={profile.netWorth ?? 0}
+          onChange={(v) => onChange({ netWorth: v > 0 ? v : undefined })}
+          min={0}
+          prefix="$"
+          placeholder="0"
+        />
+      </div>
+
+      <div>
         <FieldLabel htmlFor="currentAssets" tooltip="Total value of all your investment accounts today — 401k, IRA, Roth IRA, brokerage. Don't include cash savings or checking account balances.">
-          Current Invested Assets
+          Invested Portfolio
         </FieldLabel>
         <NumericInput
           id="currentAssets"

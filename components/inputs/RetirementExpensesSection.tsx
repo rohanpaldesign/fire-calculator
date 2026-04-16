@@ -10,33 +10,32 @@ import {
   RETIREMENT_CATEGORY_MULTIPLIERS,
 } from "@/lib/calculations";
 import { getColForState } from "@/lib/cost-of-living";
-import type { FireProfile, RetirementExpenseCategories, ExpenseCategories } from "@/types/fire";
+import type { FireProfile, ExpenseCategories } from "@/types/fire";
 import { ChevronDown, ChevronUp, Sparkles, PencilLine, TrendingDown, TrendingUp, Minus } from "lucide-react";
 
 interface Props { profile: FireProfile; onChange: (patch: Partial<FireProfile>) => void; }
 
 const RETIREMENT_CATEGORIES: {
-  key: keyof RetirementExpenseCategories;
+  key: keyof ExpenseCategories;
   label: string;
   icon: string;
   tooltip: string;
-  currentKey?: keyof ExpenseCategories;
 }[] = [
-  { key: "housing",         label: "Housing (rent/mortgage)", icon: "🏠", tooltip: "Rent or mortgage payment in retirement. May be lower if your mortgage is paid off, or higher if you downsize to a new mortgage.", currentKey: "housing" },
+  { key: "housing",         label: "Housing (rent/mortgage)", icon: "🏠", tooltip: "Rent or mortgage payment in retirement. May be lower if your mortgage is paid off, or higher if you downsize to a new mortgage." },
   { key: "utilities",       label: "Utilities",               icon: "💡", tooltip: "Electricity, gas, water, trash, internet. Spending more time at home may increase utility bills slightly." },
   { key: "groceries",       label: "Groceries",               icon: "🛒", tooltip: "Food at home. Tends to stay similar or increase slightly as you cook more at home instead of eating out for lunch." },
   { key: "dining",          label: "Dining Out",              icon: "🍽️", tooltip: "Restaurants, takeout, coffee shops. Many retirees find this increases since they have more time to go out." },
-  { key: "healthcare",      label: "Healthcare & Insurance",  icon: "🏥", tooltip: "THE big one for early retirees. Without employer insurance, a 50-year-old may pay 00-1,500+/mo for a plan. Budget generously here until Medicare at 65.", currentKey: "healthcare" },
+  { key: "healthcare",      label: "Healthcare & Insurance",  icon: "🏥", tooltip: "The big one for early retirees. Without employer insurance, you may pay hundreds to over a thousand per month for a plan. Budget generously here until Medicare at 65." },
   { key: "medications",     label: "Prescriptions & Meds",   icon: "💊", tooltip: "Prescription drugs, OTC medications, supplements. Tends to increase with age." },
-  { key: "transport",       label: "Transportation",          icon: "🚗", tooltip: "Car payment, gas, insurance, maintenance, transit. Drops significantly without a daily commute.", currentKey: "transport" },
+  { key: "transport",       label: "Transportation",          icon: "🚗", tooltip: "Car payment, gas, insurance, maintenance, transit. Drops significantly without a daily commute." },
   { key: "travel",          label: "Travel & Vacations",      icon: "✈️", tooltip: "Flights, hotels, cruises, road trips. One of the biggest increases for most retirees who finally have time to explore." },
-  { key: "hobbies",         label: "Hobbies & Entertainment", icon: "🎯", tooltip: "Sports, arts, music, fitness, events, streaming. More free time means more spending here.", currentKey: "entertainment" },
+  { key: "hobbies",         label: "Hobbies & Entertainment", icon: "🎯", tooltip: "Sports, arts, music, fitness, events, streaming. More free time means more spending here." },
   { key: "clothing",        label: "Clothing",                icon: "👕", tooltip: "Clothes, shoes, accessories. Usually drops without work attire needs." },
   { key: "personalCare",    label: "Personal Care",           icon: "💆", tooltip: "Haircuts, grooming, gym, spa, beauty. Tends to stay similar." },
   { key: "subscriptions",   label: "Subscriptions & Tech",    icon: "📱", tooltip: "Streaming, software, news, cloud storage, phone plan." },
   { key: "gifts",           label: "Gifts & Charity",         icon: "🎁", tooltip: "Birthday and holiday gifts, charitable donations, church giving." },
   { key: "homeMaintenance", label: "Home Maintenance",        icon: "🔧", tooltip: "Repairs, renovations, lawn care, HOA fees, cleaning. Budget 1-2% of home value per year." },
-  { key: "other",           label: "Other / Miscellaneous",   icon: "📦", tooltip: "Pet care, professional fees, anything not covered above.", currentKey: "other" },
+  { key: "other",           label: "Other / Miscellaneous",   icon: "📦", tooltip: "Pet care, professional fees, anything not covered above." },
 ];
 
 export function RetirementExpensesSection({ profile, onChange }: Props) {
@@ -58,7 +57,7 @@ export function RetirementExpensesSection({ profile, onChange }: Props) {
     ? Object.values(profile.expenseCategories).some((v) => (v ?? 0) > 0)
     : false;
 
-  const updateRetCat = (key: keyof RetirementExpenseCategories, monthly: number) => {
+  const updateRetCat = (key: keyof ExpenseCategories, monthly: number) => {
     const updated = { ...retCats, [key]: monthly * 12 };
     const newTotal = Object.values(updated).reduce((s, v) => s + (v ?? 0), 0);
     onChange({ retirementExpenseCategories: updated, retirementExpenses: newTotal });
@@ -68,7 +67,7 @@ export function RetirementExpensesSection({ profile, onChange }: Props) {
     <div className="space-y-4">
       <div className="flex items-center gap-2">
         <h2 className="text-base font-semibold text-[var(--fg)]">Retirement Expenses</h2>
-        <InfoTooltip content="How much you expect to spend each month IN retirement. Often different from today — no commute costs but higher healthcare. Used to calculate your FIRE number." />
+        <InfoTooltip content="How much you expect to spend each month in retirement. Often different from today — no commute costs but higher healthcare. Used to calculate your FIRE number." />
       </div>
       <p className="text-xs text-[var(--fg-muted)] -mt-2">
         What you spend in retirement sets your FIRE target. This can differ a lot from your current spending.
@@ -102,10 +101,14 @@ export function RetirementExpensesSection({ profile, onChange }: Props) {
         </button>
       </div>
 
+      <div className="rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 px-3 py-2 text-xs text-blue-700 dark:text-blue-300">
+        Enter amounts in <strong>today&apos;s dollars</strong> — do not adjust for future inflation.
+        The calculator handles inflation ({(profile.inflationRate * 100).toFixed(1)}%/yr) automatically.
+      </div>
+
       {/* AUTO MODE */}
       {mode === "auto" && (
         <div className="space-y-4">
-          {/* Lifestyle factor slider */}
           <div>
             <FieldLabel tooltip="Retirement spending as a percentage of your current spending. 80% is a common rule of thumb — lower work-related costs offset by more leisure.">
               Retirement Lifestyle Factor
@@ -134,7 +137,6 @@ export function RetirementExpensesSection({ profile, onChange }: Props) {
             </div>
           </div>
 
-          {/* Result */}
           <div className="rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 p-4">
             <p className="text-xs text-emerald-600 dark:text-emerald-500 font-medium mb-1">Estimated Retirement Expenses</p>
             <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-300">
@@ -145,12 +147,9 @@ export function RetirementExpensesSection({ profile, onChange }: Props) {
             </p>
           </div>
 
-          {/* Location benchmark */}
           {locationMonthly && colData && (
             <div className="rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-[var(--border)] p-3 text-xs">
-              <p className="font-medium text-[var(--fg)] mb-1">
-                Location benchmark: {colData.name}
-              </p>
+              <p className="font-medium text-[var(--fg)] mb-1">Location benchmark: {colData.name}</p>
               <p className="text-[var(--fg-muted)]">
                 Comfortable single-person retirement in your state costs approximately{" "}
                 <span className="font-semibold text-[var(--fg)]">{formatCurrency(locationMonthly)}/mo</span>{" "}
@@ -167,7 +166,6 @@ export function RetirementExpensesSection({ profile, onChange }: Props) {
             </div>
           )}
 
-          {/* Per-category breakdown if current expense categories are filled */}
           {hasCurCats && (
             <button
               type="button"
@@ -217,23 +215,39 @@ export function RetirementExpensesSection({ profile, onChange }: Props) {
             These can differ significantly from your current expenses.
           </p>
           <div className="space-y-3">
-            {RETIREMENT_CATEGORIES.map(({ key, label, icon, tooltip, currentKey }) => {
-              const currentAnnual = currentKey ? (profile.expenseCategories?.[currentKey] ?? 0) : 0;
+            {RETIREMENT_CATEGORIES.map(({ key, label, icon, tooltip }) => {
+              const currentAnnual = profile.expenseCategories?.[key] ?? 0;
               const currentMonthly = Math.round(currentAnnual / 12);
               const retMonthly = Math.round((retCats[key] ?? 0) / 12);
+              const suggested = currentMonthly > 0
+                ? Math.round(currentMonthly * (RETIREMENT_CATEGORY_MULTIPLIERS[key]?.multiplier ?? 1))
+                : null;
               return (
                 <div key={key}>
                   <FieldLabel htmlFor={"ret-" + key} tooltip={tooltip} className="text-xs font-normal">
                     <span className="text-sm">{icon} {label}</span>
                   </FieldLabel>
-                  <NumericInput
-                    id={"ret-" + key}
-                    value={retMonthly}
-                    onChange={(v) => updateRetCat(key, v)}
-                    min={0}
-                    prefix="$"
-                    suffix="/mo"
-                  />
+                  <div className="flex gap-2 items-center">
+                    <div className="flex-1">
+                      <NumericInput
+                        id={"ret-" + key}
+                        value={retMonthly}
+                        onChange={(v) => updateRetCat(key, v)}
+                        min={0}
+                        prefix="$"
+                        suffix="/mo"
+                      />
+                    </div>
+                    {suggested !== null && retMonthly !== suggested && (
+                      <button
+                        type="button"
+                        onClick={() => updateRetCat(key, suggested)}
+                        className="text-[10px] text-emerald-600 dark:text-emerald-400 whitespace-nowrap hover:underline"
+                      >
+                        Use {formatCurrency(suggested)}/mo →
+                      </button>
+                    )}
+                  </div>
                   {currentMonthly > 0 && (
                     <p className="text-[10px] text-[var(--fg-muted)] mt-0.5">
                       Current: {formatCurrency(currentMonthly)}/mo
@@ -249,7 +263,6 @@ export function RetirementExpensesSection({ profile, onChange }: Props) {
             })}
           </div>
 
-          {/* Running total */}
           {manualMonthlyTotal > 0 && (
             <div className="rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 p-4">
               <p className="text-xs text-emerald-600 dark:text-emerald-500 font-medium mb-1">Total Retirement Expenses</p>

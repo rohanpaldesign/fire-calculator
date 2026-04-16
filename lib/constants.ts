@@ -9,7 +9,7 @@ export const DEFAULT_PROFILE: FireProfile = {
   filingStatus: "single",
   autoTakeHome: true,
   annualExpenses: 60000,
-  retirementExpenses: 48000,       // 80% of default current expenses
+  retirementExpenses: 48000,
   retirementExpensesMode: "auto",
   retirementLifestyleFactor: 0.80,
   currentAssets: 50000,
@@ -21,4 +21,4 @@ export const DEFAULT_PROFILE: FireProfile = {
   baristaPartTimeIncome: 0,
 };
 
-export const STORAGE_KEY = "fire-calculator-profile-v2";
+export const STORAGE_KEY = "fire-calculator-profile-v3";

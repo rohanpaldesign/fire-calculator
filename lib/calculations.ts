@@ -3,12 +3,21 @@ import type { FireProfile, FireNumbers, FireProgress, FireTimeline, FireResults,
 export const NATIONAL_COMFORT_RETIREMENT_BASELINE = 60000;
 
 export const RETIREMENT_CATEGORY_MULTIPLIERS: Record<keyof ExpenseCategories, { multiplier: number; label: string }> = {
-  housing:       { multiplier: 0.80, label: "Possible downsize or mortgage payoff" },
-  food:          { multiplier: 1.00, label: "Similar (more home cooking)" },
-  transport:     { multiplier: 0.55, label: "No commute, fewer work trips" },
-  healthcare:    { multiplier: 1.80, label: "Large increase pre-Medicare" },
-  entertainment: { multiplier: 1.25, label: "More leisure time" },
-  other:         { multiplier: 0.85, label: "No work-related costs" },
+  housing:         { multiplier: 0.80, label: "Possible downsize or mortgage payoff" },
+  utilities:       { multiplier: 1.10, label: "More time at home" },
+  groceries:       { multiplier: 1.05, label: "Cook more at home" },
+  dining:          { multiplier: 1.30, label: "More time to eat out" },
+  healthcare:      { multiplier: 1.80, label: "Large increase pre-Medicare" },
+  medications:     { multiplier: 1.50, label: "Tends to increase with age" },
+  transport:       { multiplier: 0.55, label: "No commute, fewer work trips" },
+  travel:          { multiplier: 1.50, label: "Finally time to explore" },
+  hobbies:         { multiplier: 1.30, label: "More leisure time" },
+  clothing:        { multiplier: 0.65, label: "No work attire needed" },
+  personalCare:    { multiplier: 0.90, label: "Similar" },
+  subscriptions:   { multiplier: 0.85, label: "Drop work tools" },
+  gifts:           { multiplier: 1.10, label: "More time to be generous" },
+  homeMaintenance: { multiplier: 1.20, label: "More time at home" },
+  other:           { multiplier: 0.85, label: "No work-related costs" },
 };
 
 export function calcAutoRetirementExpenses(profile: FireProfile): number {
@@ -22,8 +31,7 @@ export function calcAutoRetirementExpenses(profile: FireProfile): number {
         retirementCatTotal += cat * multiplier;
       }
       const uncategorized = Math.max(0, annualExpenses - catTotal);
-      const baseAutoExpenses = retirementCatTotal + uncategorized * retirementLifestyleFactor;
-      return Math.round(baseAutoExpenses * (retirementLifestyleFactor / 0.80));
+      return Math.round(retirementCatTotal + uncategorized * retirementLifestyleFactor);
     }
   }
   return Math.round(annualExpenses * retirementLifestyleFactor);
@@ -134,7 +142,19 @@ export function calcFireResults(profile: FireProfile, overrides?: WhatIfOverride
   const baristaExpenses = expenses - (profile.baristaPartTimeIncome ?? 0);
   const baristaFireNumber = baristaExpenses > 0 ? calcFireNumber(baristaExpenses, swr) : 0;
   const coastFireNumber = calcCoastFireNumber(fireNumber, realReturn, profile.currentAge, profile.retirementAge);
+
   const yearsToFire = calcYearsToFire(profile.currentAssets, monthlyContrib, realReturn, fireNumber);
+  const fireDate = yearsToFire != null ? new Date(new Date().getFullYear() + Math.ceil(yearsToFire), 0, 1) : null;
+  const fireAge = yearsToFire !== null ? Math.round(profile.currentAge + yearsToFire) : null;
+
+  const yearsUntilFire = yearsToFire ?? Math.max(0, profile.retirementAge - profile.currentAge);
+  const nominalFireNumber = Math.round(fireNumber * Math.pow(1 + profile.inflationRate, yearsUntilFire));
+  const yearsToRetirement = Math.max(0, profile.retirementAge - profile.currentAge);
+  const portfolioAtRetirementAge = Math.round(futureValue(profile.currentAssets, monthlyContrib, profile.nominalReturn, yearsToRetirement));
+  const portfolioAtFireDate = yearsToFire !== null
+    ? Math.round(futureValue(profile.currentAssets, monthlyContrib, profile.nominalReturn, yearsToFire))
+    : null;
+
   const timeline = buildPortfolioTimeline(profile, fireNumber, coastFireNumber, monthlyContrib);
   const coastFireAchievedAge = findCoastFireAge(timeline, coastFireNumber);
   const yearsAvailable = profile.retirementAge - profile.currentAge;
@@ -151,8 +171,9 @@ export function calcFireResults(profile: FireProfile, overrides?: WhatIfOverride
     }
     return expenses - (lo + hi) / 2;
   })() : null;
+
   return {
-    numbers: { fireNumber, coastFireNumber, leanFireNumber, fatFireNumber, baristaFireNumber },
+    numbers: { fireNumber, coastFireNumber, leanFireNumber, fatFireNumber, baristaFireNumber, nominalFireNumber, portfolioAtRetirementAge, portfolioAtFireDate },
     progress: {
       fireProgress: profile.currentAssets / fireNumber,
       coastFireProgress: profile.currentAssets / coastFireNumber,
@@ -161,7 +182,8 @@ export function calcFireResults(profile: FireProfile, overrides?: WhatIfOverride
     },
     timeline: {
       yearsToFire,
-      fireDate: yearsToFire != null ? new Date(new Date().getFullYear() + Math.ceil(yearsToFire), 0, 1) : null,
+      fireDate,
+      fireAge,
       coastFireAchievedAge,
       projectedPortfolioByYear: timeline,
       monthlyContribNeeded,

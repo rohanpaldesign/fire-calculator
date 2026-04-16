@@ -10,19 +10,27 @@ import { formatCurrency } from "@/lib/formatters";
 interface Props { profile: FireProfile; onChange: (patch: Partial<FireProfile>) => void; }
 
 const CATEGORIES: { key: keyof ExpenseCategories; label: string; icon: string; tooltip: string }[] = [
-  { key: "housing", label: "Housing (rent/mortgage)", icon: "🏠", tooltip: "Rent, mortgage payment, renters/homeowners insurance, HOA fees." },
-  { key: "food", label: "Food & Groceries", icon: "🛒", tooltip: "Groceries, restaurants, coffee shops, meal kits." },
-  { key: "transport", label: "Transportation", icon: "🚗", tooltip: "Car payment, gas, insurance, public transit, Uber/Lyft." },
-  { key: "healthcare", label: "Healthcare", icon: "🏥", tooltip: "Health insurance premiums (your share), copays, prescriptions, gym." },
-  { key: "entertainment", label: "Entertainment & Leisure", icon: "🎬", tooltip: "Streaming, hobbies, travel, concerts, vacations." },
-  { key: "other", label: "Other", icon: "📦", tooltip: "Clothing, personal care, subscriptions, gifts, miscellaneous." },
+  { key: "housing",         label: "Housing (rent/mortgage)",  icon: "🏠", tooltip: "Rent, mortgage payment, renters or homeowners insurance, HOA fees." },
+  { key: "utilities",       label: "Utilities",                icon: "💡", tooltip: "Electricity, gas, water, trash, internet." },
+  { key: "groceries",       label: "Groceries",                icon: "🛒", tooltip: "Food at home — grocery stores, farmers markets, meal kits." },
+  { key: "dining",          label: "Dining Out",               icon: "🍽️", tooltip: "Restaurants, takeout, coffee shops, bars." },
+  { key: "healthcare",      label: "Healthcare",               icon: "🏥", tooltip: "Health insurance premiums (your share), copays, prescriptions, gym membership." },
+  { key: "medications",     label: "Prescriptions & Meds",    icon: "💊", tooltip: "Prescription drugs, OTC medications, supplements." },
+  { key: "transport",       label: "Transportation",           icon: "🚗", tooltip: "Car payment, gas, insurance, maintenance, public transit, rideshare." },
+  { key: "travel",          label: "Travel & Vacations",       icon: "✈️", tooltip: "Flights, hotels, road trips, vacation spending." },
+  { key: "hobbies",         label: "Hobbies & Entertainment",  icon: "🎯", tooltip: "Sports, arts, music, fitness, events, streaming services." },
+  { key: "clothing",        label: "Clothing",                 icon: "👕", tooltip: "Clothes, shoes, accessories." },
+  { key: "personalCare",    label: "Personal Care",            icon: "💆", tooltip: "Haircuts, grooming, gym, spa, beauty products." },
+  { key: "subscriptions",   label: "Subscriptions & Tech",     icon: "📱", tooltip: "Software, news, streaming, cloud storage, phone plan." },
+  { key: "gifts",           label: "Gifts & Charity",          icon: "🎁", tooltip: "Birthday and holiday gifts, charitable donations." },
+  { key: "homeMaintenance", label: "Home Maintenance",         icon: "🔧", tooltip: "Repairs, renovations, lawn care, HOA fees, cleaning supplies." },
+  { key: "other",           label: "Other / Miscellaneous",    icon: "📦", tooltip: "Pet care, professional fees, anything not covered above." },
 ];
 
 export function ExpensesSection({ profile, onChange }: Props) {
   const [showCats, setShowCats] = useState(false);
   const cats = profile.expenseCategories ?? {};
 
-  // Display as monthly, store as annual
   const monthlyExpenses = Math.round(profile.annualExpenses / 12);
   const fireNumber = profile.annualExpenses / profile.safeWithdrawalRate;
 
@@ -38,6 +46,11 @@ export function ExpensesSection({ profile, onChange }: Props) {
   return (
     <div className="space-y-4">
       <h2 className="text-base font-semibold text-[var(--fg)]">Current Monthly Expenses</h2>
+
+      <div className="rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 px-3 py-2 text-xs text-blue-700 dark:text-blue-300">
+        Enter amounts in <strong>today&apos;s dollars</strong> — do not adjust for inflation.
+        Inflation ({(profile.inflationRate * 100).toFixed(1)}%/yr) is applied automatically in all projections.
+      </div>
 
       <div>
         <FieldLabel htmlFor="monthlyExpenses" tooltip="Your total monthly spending — rent, food, subscriptions, everything. This directly sets your FIRE number: the more you spend, the more you need to save.">
@@ -62,7 +75,7 @@ export function ExpensesSection({ profile, onChange }: Props) {
         className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 font-medium hover:underline"
       >
         {showCats ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-        {showCats ? "Hide" : "Break down"} by category (optional — auto-sums total)
+        {showCats ? "Hide" : "Break down"} by category (optional — enables smarter retirement estimate)
       </button>
 
       {showCats && (

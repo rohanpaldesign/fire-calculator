@@ -3,15 +3,42 @@ import dynamic from "next/dynamic";
 import { FireSummaryCards } from "./FireSummaryCards";
 import { ProgressRing } from "./ProgressRing";
 import { Card } from "@/components/ui/card";
+import { formatCurrency } from "@/lib/formatters";
 import type { FireResults, FireProfile } from "@/types/fire";
 const PortfolioChart = dynamic(() => import("./PortfolioChart"), { ssr: false });
 const ExpensePieChart = dynamic(() => import("./ExpensePieChart"), { ssr: false });
 interface Props { results: FireResults; profile: FireProfile; }
 export function ResultsDashboard({ results, profile }: Props) {
   const { progress, timeline } = results;
-  const hasCategories = Object.values(profile.expenseCategories??{}).some((v)=>(v??0)>0);
+  const hasCategories = Object.values(profile.expenseCategories ?? {}).some((v) => (v ?? 0) > 0);
+  const effectiveExpenses = Math.round(results.numbers.fireNumber * profile.safeWithdrawalRate);
+
   return (
     <div className="space-y-6">
+
+      {/* Current Snapshot strip */}
+      <Card>
+        <h3 className="text-xs font-semibold text-[var(--fg-muted)] uppercase tracking-wide mb-3">Your Current Snapshot</h3>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div>
+            <p className="text-xs text-[var(--fg-muted)]">{profile.netWorth ? "Net Worth" : "Invested Portfolio"}</p>
+            <p className="text-xl font-bold text-[var(--fg)]">{formatCurrency(profile.netWorth ?? profile.currentAssets, true)}</p>
+          </div>
+          <div>
+            <p className="text-xs text-[var(--fg-muted)]">Retirement Spending</p>
+            <p className="text-xl font-bold text-[var(--fg)]">{formatCurrency(effectiveExpenses, true)}/yr</p>
+          </div>
+          <div>
+            <p className="text-xs text-[var(--fg-muted)]">Gross Income</p>
+            <p className="text-xl font-bold text-[var(--fg)]">{formatCurrency(profile.grossIncome, true)}/yr</p>
+          </div>
+          <div>
+            <p className="text-xs text-[var(--fg-muted)]">Annual Investing</p>
+            <p className="text-xl font-bold text-[var(--fg)]">{formatCurrency(profile.monthlyContribution * 12, true)}/yr</p>
+          </div>
+        </div>
+      </Card>
+
       <Card>
         <h3 className="text-sm font-semibold text-[var(--fg-muted)] uppercase tracking-wide mb-4">FIRE Progress Overview</h3>
         <div className="flex flex-wrap justify-around gap-4">
@@ -21,13 +48,28 @@ export function ResultsDashboard({ results, profile }: Props) {
           <ProgressRing progress={progress.fatFireProgress} label="Fat FIRE" />
         </div>
       </Card>
+
       <FireSummaryCards results={results} profile={profile} />
-      <Card><PortfolioChart data={timeline.projectedPortfolioByYear} fireDate={timeline.fireDate} coastFireAchievedAge={timeline.coastFireAchievedAge} currentAge={profile.currentAge} /></Card>
-      {hasCategories && <Card><ExpensePieChart categories={profile.expenseCategories!} total={profile.annualExpenses} /></Card>}
+
+      <Card>
+        <PortfolioChart
+          data={timeline.projectedPortfolioByYear}
+          fireDate={timeline.fireDate}
+          coastFireAchievedAge={timeline.coastFireAchievedAge}
+          currentAge={profile.currentAge}
+        />
+      </Card>
+
+      {hasCategories && (
+        <Card>
+          <ExpensePieChart categories={profile.expenseCategories!} total={profile.annualExpenses} />
+        </Card>
+      )}
+
       <Card className="text-xs text-[var(--fg-muted)] space-y-1">
         <p className="font-semibold text-[var(--fg)] text-sm mb-2">Assumptions used</p>
-        <p>Real return: {(profile.realReturn*100).toFixed(1)}% · Nominal: {(profile.nominalReturn*100).toFixed(1)}% · Inflation: {(profile.inflationRate*100).toFixed(1)}%</p>
-        <p>SWR: {(profile.safeWithdrawalRate*100).toFixed(1)}% · FIRE = Annual Expenses ÷ SWR · Coast FIRE = FIRE ÷ (1+r)^years</p>
+        <p>Real return: {(profile.realReturn * 100).toFixed(1)}% · Nominal: {(profile.nominalReturn * 100).toFixed(1)}% · Inflation: {(profile.inflationRate * 100).toFixed(1)}%</p>
+        <p>SWR: {(profile.safeWithdrawalRate * 100).toFixed(1)}% · FIRE = Annual Expenses ÷ SWR · Coast FIRE = FIRE ÷ (1+r)^years</p>
         <p className="italic pt-1">Projections are estimates for planning purposes. Not financial advice.</p>
       </Card>
     </div>

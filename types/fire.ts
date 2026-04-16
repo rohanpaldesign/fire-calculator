@@ -2,30 +2,23 @@ export type USState = "AL"|"AK"|"AZ"|"AR"|"CA"|"CO"|"CT"|"DE"|"FL"|"GA"|"HI"|"ID
 
 export interface ExpenseCategories {
   housing: number;
-  food: number;
-  transport: number;
+  utilities: number;
+  groceries: number;
+  dining: number;
   healthcare: number;
-  entertainment: number;
-  other: number;
-}
-
-export interface RetirementExpenseCategories {
-  housing: number;       // rent/mortgage (may be lower if paid off)
-  utilities: number;     // electric, gas, water, internet
-  groceries: number;     // food at home
-  dining: number;        // restaurants & takeout
-  healthcare: number;    // insurance premiums, copays (BIG pre-Medicare)
-  medications: number;   // prescriptions & OTC
-  transport: number;     // car, gas, transit (no commute)
-  travel: number;        // vacations, flights, hotels
-  hobbies: number;       // sports, arts, leisure activities
+  medications: number;
+  transport: number;
+  travel: number;
+  hobbies: number;
   clothing: number;
-  personalCare: number;  // haircuts, grooming, gym
-  subscriptions: number; // streaming, software, news
-  gifts: number;         // gifts, charitable giving
-  homeMaintenance: number; // repairs, HOA, lawn
+  personalCare: number;
+  subscriptions: number;
+  gifts: number;
+  homeMaintenance: number;
   other: number;
 }
+// Backward compat alias -- both current and retirement expenses use the same 15 categories
+export type RetirementExpenseCategories = ExpenseCategories;
 
 export interface FireProfile {
   currentAge: number;
@@ -37,11 +30,11 @@ export interface FireProfile {
   autoTakeHome: boolean;
   annualExpenses: number;
   expenseCategories?: Partial<ExpenseCategories>;
-  // Retirement expenses — separate from current (can differ significantly)
-  retirementExpenses: number;          // annual, today's dollars (used in manual mode)
+  retirementExpenses: number;
   retirementExpensesMode: "auto" | "manual";
-  retirementLifestyleFactor: number;   // 0.5–1.5; auto mode = currentExpenses × this
-  retirementExpenseCategories?: Partial<RetirementExpenseCategories>;
+  retirementLifestyleFactor: number;
+  retirementExpenseCategories?: Partial<ExpenseCategories>;
+  netWorth?: number;
   currentAssets: number;
   monthlyContribution: number;
   nominalReturn: number;
@@ -57,6 +50,9 @@ export interface FireNumbers {
   leanFireNumber: number;
   fatFireNumber: number;
   baristaFireNumber: number;
+  nominalFireNumber: number;
+  portfolioAtRetirementAge: number;
+  portfolioAtFireDate: number | null;
 }
 export interface FireProgress {
   fireProgress: number;
@@ -74,6 +70,7 @@ export interface PortfolioDataPoint {
 export interface FireTimeline {
   yearsToFire: number | null;
   fireDate: Date | null;
+  fireAge: number | null;
   coastFireAchievedAge: number | null;
   projectedPortfolioByYear: PortfolioDataPoint[];
   monthlyContribNeeded: number | null;
