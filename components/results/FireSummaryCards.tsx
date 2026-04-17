@@ -1,7 +1,7 @@
 "use client";
 import { Card, CardTitle, CardValue, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { formatCurrency, formatYears } from "@/lib/formatters";
+import { formatCurrency } from "@/lib/formatters";
 import type { FireResults, FireProfile } from "@/types/fire";
 
 interface Props { results: FireResults; profile: FireProfile; }
@@ -23,65 +23,26 @@ export function FireSummaryCards({ results, profile }: Props) {
   return (
     <div className="space-y-4">
 
-      {/* ── Row 1: FIRE Number · Coast FIRE Today · Target Coasting Age · Coast Target at Target Age ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-
-        <Card>
-          <CardTitle>FIRE Number</CardTitle>
-          <CardValue className="text-emerald-600 dark:text-emerald-400">{formatCurrency(numbers.fireNumber, true)}</CardValue>
-          <CardDescription>
-            Portfolio needed to retire permanently at {(profile.safeWithdrawalRate * 100).toFixed(1)}% withdrawal rate.
-            In today&apos;s dollars.
-          </CardDescription>
-        </Card>
-
-        <Card>
-          <CardTitle>Coast FIRE Today</CardTitle>
-          <CardValue className="text-indigo-600 dark:text-indigo-400">{formatCurrency(numbers.coastFireNumber, true)}</CardValue>
-          <CardDescription>
-            If you stopped contributing right now, compound growth alone would reach your FIRE number by age {profile.retirementAge}.
-          </CardDescription>
-        </Card>
-
-        <Card>
-          <CardTitle>Target Coasting Age</CardTitle>
-          <CardValue className="text-[var(--fg)]">{profile.targetCoastAge}</CardValue>
-          <CardDescription>
-            The age you plan to stop making new contributions and let your portfolio grow on its own until retirement.
-          </CardDescription>
-        </Card>
-
-        <Card>
-          <CardTitle>Coast Target at Age {profile.targetCoastAge}</CardTitle>
-          <CardValue className="text-indigo-600 dark:text-indigo-400">{formatCurrency(numbers.coastFireAtTargetAge, true)}</CardValue>
-          <CardDescription>
-            Amount needed by age {profile.targetCoastAge} so compound growth covers the rest of the way to retirement at age {profile.retirementAge}.
-            In today&apos;s dollars.
-          </CardDescription>
-          <div className="mt-2 h-1.5 w-full rounded-full bg-[var(--border)]">
-            <div
-              className="h-1.5 rounded-full bg-indigo-400 transition-all duration-500"
-              style={{ width: `${coastAtTargetPct}%` }}
-            />
-          </div>
-          <p className="text-xs text-[var(--fg-muted)] mt-1">{coastAtTargetPct}% of this target reached today</p>
-        </Card>
-
-      </div>
-
-      {/* ── Row 2: Retirement Age · Monthly Investment (parent) with Predicted Coast Age + Time to FIRE children ── */}
+      {/* ── Row 1: Retirement Goal · Current Monthly Investment ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
         <Card>
-          <CardTitle>Retirement Age</CardTitle>
+          <CardTitle>Retirement Goal</CardTitle>
           <CardValue className="text-[var(--fg)]">{profile.retirementAge}</CardValue>
-          <CardDescription>Target age to stop working. Your FIRE number is sized to sustain withdrawals from this age onward.</CardDescription>
+          <CardDescription>Target age to stop working</CardDescription>
+          <div className="mt-3 pt-3 border-t border-[var(--border)]">
+            <p className="text-xs font-semibold text-[var(--fg)] mb-0.5">FIRE Number</p>
+            <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(numbers.fireNumber, true)}</p>
+            <p className="text-xs text-[var(--fg-muted)] mt-0.5">
+              Portfolio needed at {(profile.safeWithdrawalRate * 100).toFixed(1)}% SWR &middot; today&apos;s dollars
+            </p>
+          </div>
         </Card>
 
         <Card>
-          <CardTitle>Monthly Investment</CardTitle>
+          <CardTitle>Current Monthly Investment</CardTitle>
           <CardValue className="text-[var(--fg)]">{formatCurrency(profile.monthlyContribution)}</CardValue>
-          <CardDescription>Current contribution rate. Both projections below assume this monthly amount.</CardDescription>
+          <CardDescription>Current contribution rate. Both projections below assume this amount.</CardDescription>
 
           <div className="grid grid-cols-2 gap-3 mt-3 pt-3 border-t border-[var(--border)]">
 
@@ -127,6 +88,42 @@ export function FireSummaryCards({ results, profile }: Props) {
               )}
             </div>
 
+          </div>
+        </Card>
+
+      </div>
+
+      {/* ── Row 2: Coast FIRE Today · Coast Goals ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+        <Card>
+          <CardTitle>Coast FIRE Today</CardTitle>
+          <CardValue className="text-indigo-600 dark:text-indigo-400">{formatCurrency(numbers.coastFireNumber, true)}</CardValue>
+          <CardDescription>
+            If you stopped contributing right now, compound growth alone would reach your FIRE number by age {profile.retirementAge}.
+          </CardDescription>
+        </Card>
+
+        <Card>
+          <CardTitle>Coast Goals</CardTitle>
+          <CardDescription>
+            Your plan to stop contributing at age {profile.targetCoastAge} and let compound growth cover the rest to retirement at age {profile.retirementAge}.
+          </CardDescription>
+          <div className="grid grid-cols-2 gap-3 mt-3 pt-3 border-t border-[var(--border)]">
+            <div>
+              <p className="text-xs font-semibold text-[var(--fg)] mb-0.5">Target Coasting Age</p>
+              <p className="text-2xl font-bold text-[var(--fg)]">{profile.targetCoastAge}</p>
+              <p className="text-xs text-[var(--fg-muted)] mt-0.5">Age to stop new contributions</p>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-[var(--fg)] mb-0.5">Coast Target at {profile.targetCoastAge}</p>
+              <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{formatCurrency(numbers.coastFireAtTargetAge, true)}</p>
+              <p className="text-xs text-[var(--fg-muted)] mt-0.5">Needed to coast to FIRE by {profile.retirementAge}</p>
+              <div className="mt-1.5 h-1.5 w-full rounded-full bg-[var(--border)]">
+                <div className="h-1.5 rounded-full bg-indigo-400 transition-all duration-500" style={{ width: `${coastAtTargetPct}%` }} />
+              </div>
+              <p className="text-xs text-[var(--fg-muted)] mt-0.5">{coastAtTargetPct}% reached today</p>
+            </div>
           </div>
         </Card>
 
