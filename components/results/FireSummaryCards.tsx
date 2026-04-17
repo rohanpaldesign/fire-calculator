@@ -125,21 +125,27 @@ export function FireSummaryCards({ results, profile }: Props) {
 
       {/* ── Coast FIRE by age table ── */}
       <Card>
-        <h3 className="text-sm font-semibold text-[var(--fg)] mb-1">Coast FIRE by Age</h3>
-        <p className="text-xs text-[var(--fg-muted)] mb-3">
-          For each age from now to your target coasting age, the coast target is the amount you would need
-          at that exact age so compound growth alone reaches your FIRE number by retirement at age {profile.retirementAge}.
-          Your portfolio projection assumes continued contributions at {formatCurrency(profile.monthlyContribution)}/mo.
-          All values in today&apos;s dollars.
-        </p>
+        <h3 className="text-sm font-semibold text-[var(--fg)] mb-3">Coast FIRE by Age</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[var(--border)] text-left">
-                <th className="pb-2 pr-4 text-xs font-semibold text-[var(--fg-muted)]">Age</th>
-                <th className="pb-2 pr-4 text-xs font-semibold text-[var(--fg-muted)]">Coast Target</th>
-                <th className="pb-2 pr-4 text-xs font-semibold text-[var(--fg-muted)]">Your Portfolio</th>
-                <th className="pb-2 text-xs font-semibold text-[var(--fg-muted)]">Status</th>
+                <th className="pb-2 pr-4 align-top">
+                  <p className="text-xs font-semibold text-[var(--fg)]">Age</p>
+                  <p className="text-xs font-normal text-[var(--fg-muted)]">Your age</p>
+                </th>
+                <th className="pb-2 pr-4 align-top">
+                  <p className="text-xs font-semibold text-[var(--fg)]">Coast Target</p>
+                  <p className="text-xs font-normal text-[var(--fg-muted)]">Amount needed to stop contributing at this age and still reach FIRE by {profile.retirementAge}</p>
+                </th>
+                <th className="pb-2 pr-4 align-top">
+                  <p className="text-xs font-semibold text-[var(--fg)]">Portfolio (at current rate)</p>
+                  <p className="text-xs font-normal text-[var(--fg-muted)]">Projected value if you keep investing {formatCurrency(profile.monthlyContribution)}/mo</p>
+                </th>
+                <th className="pb-2 align-top">
+                  <p className="text-xs font-semibold text-[var(--fg)]">Monthly Needed from This Age</p>
+                  <p className="text-xs font-normal text-[var(--fg-muted)]">Monthly contribution required from this age to hit your coast target by age {profile.targetCoastAge}</p>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -148,13 +154,17 @@ export function FireSummaryCards({ results, profile }: Props) {
                   key={pt.age}
                   className={`border-b border-[var(--border)] last:border-0 ${pt.canCoast ? "bg-emerald-50/40 dark:bg-emerald-950/20" : ""}`}
                 >
-                  <td className="py-1.5 pr-4 font-medium text-[var(--fg)]">{pt.age}</td>
-                  <td className="py-1.5 pr-4 text-[var(--fg-muted)]">{formatCurrency(pt.coastTarget, true)}</td>
-                  <td className="py-1.5 pr-4 text-[var(--fg)]">{formatCurrency(pt.portfolio, true)}</td>
-                  <td className="py-1.5">
-                    {pt.canCoast
-                      ? <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">Can coast</span>
-                      : <span className="text-xs text-[var(--fg-muted)]">{formatCurrency(pt.coastTarget - pt.portfolio, true)} to go</span>
+                  <td className="py-2 pr-4 font-medium text-[var(--fg)]">{pt.age}</td>
+                  <td className="py-2 pr-4 text-[var(--fg-muted)]">{formatCurrency(pt.coastTarget, true)}</td>
+                  <td className="py-2 pr-4 text-[var(--fg)]">{formatCurrency(pt.portfolio, true)}</td>
+                  <td className="py-2">
+                    {pt.monthlyNeeded === 0
+                      ? <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">$0 &mdash; can coast</span>
+                      : pt.monthlyNeeded === -1
+                      ? <span className="text-xs text-[var(--fg-muted)]">&mdash;</span>
+                      : <span className={`text-xs font-medium ${pt.monthlyNeeded <= profile.monthlyContribution ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"}`}>
+                          {formatCurrency(pt.monthlyNeeded)}/mo
+                        </span>
                     }
                   </td>
                 </tr>

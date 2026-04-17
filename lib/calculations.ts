@@ -156,7 +156,17 @@ export function calcFireResults(profile: FireProfile, overrides?: WhatIfOverride
     const yearsFromNow = age - profile.currentAge;
     const portfolio = Math.round(futureValue(profile.currentAssets, monthlyContrib, realReturn, yearsFromNow));
     const coastTarget = Math.round(calcCoastFireNumber(fireNumber, realReturn, age, profile.retirementAge));
-    coastByAge.push({ age, coastTarget, portfolio, canCoast: portfolio >= coastTarget });
+    const canCoast = portfolio >= coastTarget;
+    const yearsToTargetCoast = safeTargetCoastAge - age;
+    let monthlyNeeded: number;
+    if (portfolio >= coastFireAtTargetAge) {
+      monthlyNeeded = 0;
+    } else if (yearsToTargetCoast <= 0) {
+      monthlyNeeded = -1; // no time left and not at target
+    } else {
+      monthlyNeeded = Math.round(calcMonthlyContribNeeded(portfolio, realReturn, coastFireAtTargetAge, yearsToTargetCoast));
+    }
+    coastByAge.push({ age, coastTarget, portfolio, canCoast, monthlyNeeded });
   }
 
   // Predicted coast age: first age where portfolio (with contributions) >= coastFireAtTargetAge
