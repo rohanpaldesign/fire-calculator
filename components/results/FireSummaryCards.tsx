@@ -141,19 +141,19 @@ export function FireSummaryCards({ results, profile }: Props) {
                   <p className="text-xs font-normal text-[var(--fg-muted)]">Projected value if you keep investing {formatCurrency(profile.monthlyContribution)}/mo</p>
                 </th>
                 <th className="pb-2 pr-4 align-top">
-                  <p className="text-xs font-semibold text-[var(--fg)]">On-Track Benchmark</p>
+                  <p className="text-xs font-semibold text-[var(--fg)]">On-Track Goal</p>
                   <p className="text-xs font-normal text-[var(--fg-muted)]">What you should have at this age if investing the recommended amount to reach your coast target by age {profile.targetCoastAge}</p>
                 </th>
                 <th className="pb-2 align-top">
-                  <p className="text-xs font-semibold text-[var(--fg)]">Annual Benchmark Step</p>
-                  <p className="text-xs font-normal text-[var(--fg-muted)]">How much the benchmark increases this year — your target net portfolio growth (contributions + returns combined)</p>
+                  <p className="text-xs font-semibold text-[var(--fg)]">Annual Target Investment</p>
+                  <p className="text-xs font-normal text-[var(--fg-muted)]">How much your portfolio needs to grow this year to be on track at the next age (contributions + returns)</p>
                 </th>
               </tr>
             </thead>
             <tbody>
               {timeline.coastByAge.map((pt, i) => {
-                const prevBenchmark = i > 0 ? timeline.coastByAge[i - 1].onTrackBenchmark : null;
-                const annualStep = prevBenchmark !== null ? pt.onTrackBenchmark - prevBenchmark : null;
+                const nextBenchmark = i < timeline.coastByAge.length - 1 ? timeline.coastByAge[i + 1].onTrackBenchmark : null;
+                const annualStep = nextBenchmark !== null ? nextBenchmark - pt.onTrackBenchmark : null;
                 return (
                 <tr
                   key={pt.age}
