@@ -69,8 +69,8 @@ export function FireSummaryCards({ results, profile }: Props) {
 
       </div>
 
-      {/* ── Row 2: Retirement Age · Monthly Investment · Predicted Coast Age ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* ── Row 2: Retirement Age · Monthly Investment (parent) with Predicted Coast Age + Time to FIRE children ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
         <Card>
           <CardTitle>Retirement Age</CardTitle>
@@ -81,41 +81,53 @@ export function FireSummaryCards({ results, profile }: Props) {
         <Card>
           <CardTitle>Monthly Investment</CardTitle>
           <CardValue className="text-[var(--fg)]">{formatCurrency(profile.monthlyContribution)}</CardValue>
-          <CardDescription>Current monthly contribution rate. The predicted coast age below is based on this amount.</CardDescription>
-        </Card>
+          <CardDescription>Current contribution rate. Both projections below assume this monthly amount.</CardDescription>
 
-        <Card className={
-          timeline.predictedCoastAge !== null && timeline.predictedCoastAge <= profile.targetCoastAge
-            ? "border-emerald-200 dark:border-emerald-800 bg-emerald-50/30 dark:bg-emerald-950/20"
-            : ""
-        }>
-          <CardTitle>Predicted Coast Age</CardTitle>
-          {timeline.predictedCoastAge !== null ? (
-            <>
-              <CardValue className={
-                timeline.predictedCoastAge <= profile.targetCoastAge
-                  ? "text-emerald-600 dark:text-emerald-400"
-                  : "text-amber-600 dark:text-amber-400"
-              }>
-                Age {timeline.predictedCoastAge}
-              </CardValue>
-              <CardDescription>
-                {timeline.predictedCoastAge <= profile.currentAge
-                  ? "You can already coast. Your portfolio will reach your FIRE number by retirement with no new contributions needed."
-                  : timeline.predictedCoastAge <= profile.targetCoastAge
-                  ? `${timeline.predictedCoastAge - profile.currentAge} years from now — before your target coasting age. On track.`
-                  : `${timeline.predictedCoastAge - profile.currentAge} years from now — ${timeline.predictedCoastAge - profile.targetCoastAge} years after your target coasting age.`
-                }
-              </CardDescription>
-            </>
-          ) : (
-            <>
-              <CardValue className="text-amber-600 dark:text-amber-400">Not on track</CardValue>
-              <CardDescription>
-                At your current savings and contribution rate, your portfolio will not reach the coast target of {formatCurrency(numbers.coastFireAtTargetAge, true)} by age {profile.targetCoastAge}.
-              </CardDescription>
-            </>
-          )}
+          <div className="grid grid-cols-2 gap-3 mt-3 pt-3 border-t border-[var(--border)]">
+
+            {/* Predicted Coast Age */}
+            <div>
+              <p className="text-xs font-semibold text-[var(--fg)] mb-1">Predicted Coast Age</p>
+              {timeline.predictedCoastAge !== null ? (
+                <>
+                  <p className={`text-xl font-bold ${timeline.predictedCoastAge <= profile.targetCoastAge ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"}`}>
+                    Age {timeline.predictedCoastAge}
+                  </p>
+                  <p className="text-xs text-[var(--fg-muted)] mt-0.5">
+                    {timeline.predictedCoastAge <= profile.currentAge
+                      ? "Can coast now"
+                      : timeline.predictedCoastAge <= profile.targetCoastAge
+                      ? `${timeline.predictedCoastAge - profile.currentAge}yr \u00b7 on track`
+                      : `${timeline.predictedCoastAge - profile.currentAge}yr \u00b7 ${timeline.predictedCoastAge - profile.targetCoastAge}yr late`}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-xl font-bold text-amber-600 dark:text-amber-400">&mdash;</p>
+                  <p className="text-xs text-[var(--fg-muted)] mt-0.5">Not on track</p>
+                </>
+              )}
+            </div>
+
+            {/* Time to FIRE */}
+            <div>
+              <p className="text-xs font-semibold text-[var(--fg)] mb-1">Time to FIRE</p>
+              {timeline.yearsToFire !== null ? (
+                <>
+                  <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400">~{fireYear}</p>
+                  <p className="text-xs text-[var(--fg-muted)] mt-0.5">
+                    {timeline.fireAge !== null ? `Age ${timeline.fireAge} \u00b7 ` : ""}{yearsFromNow === 1 ? "1yr" : `${yearsFromNow}yr`}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-xl font-bold text-amber-600 dark:text-amber-400">&mdash;</p>
+                  <p className="text-xs text-[var(--fg-muted)] mt-0.5">Not achievable</p>
+                </>
+              )}
+            </div>
+
+          </div>
         </Card>
 
       </div>
