@@ -23,14 +23,8 @@ export function FireSummaryCards({ results, profile }: Props) {
   return (
     <div className="space-y-4">
 
-      {/* ── Row 1: Retirement Age · FIRE Number · Coast FIRE Today · Monthly Investment ── */}
+      {/* ── Row 1: FIRE Number · Coast FIRE Today · Target Coasting Age · Coast Target at Target Age ── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-
-        <Card>
-          <CardTitle>Retirement Age</CardTitle>
-          <CardValue className="text-[var(--fg)]">{profile.retirementAge}</CardValue>
-          <CardDescription>Target age to stop working</CardDescription>
-        </Card>
 
         <Card>
           <CardTitle>FIRE Number</CardTitle>
@@ -42,26 +36,12 @@ export function FireSummaryCards({ results, profile }: Props) {
         </Card>
 
         <Card>
-          <div className="flex items-start justify-between mb-1">
-            <CardTitle>Coast FIRE Today</CardTitle>
-            {statusBadge(progress.coastFireProgress)}
-          </div>
+          <CardTitle>Coast FIRE Today</CardTitle>
           <CardValue className="text-indigo-600 dark:text-indigo-400">{formatCurrency(numbers.coastFireNumber, true)}</CardValue>
           <CardDescription>
             If you stopped contributing right now, compound growth alone would reach your FIRE number by age {profile.retirementAge}.
           </CardDescription>
         </Card>
-
-        <Card>
-          <CardTitle>Monthly Investment</CardTitle>
-          <CardValue className="text-[var(--fg)]">{formatCurrency(profile.monthlyContribution)}</CardValue>
-          <CardDescription>Current monthly contribution rate used in all projections below.</CardDescription>
-        </Card>
-
-      </div>
-
-      {/* ── Row 2: Target Coasting Age · Coast Target at Target Age · Predicted Coast Age ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
 
         <Card>
           <CardTitle>Target Coasting Age</CardTitle>
@@ -85,6 +65,23 @@ export function FireSummaryCards({ results, profile }: Props) {
             />
           </div>
           <p className="text-xs text-[var(--fg-muted)] mt-1">{coastAtTargetPct}% of this target reached today</p>
+        </Card>
+
+      </div>
+
+      {/* ── Row 2: Retirement Age · Monthly Investment · Predicted Coast Age ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+
+        <Card>
+          <CardTitle>Retirement Age</CardTitle>
+          <CardValue className="text-[var(--fg)]">{profile.retirementAge}</CardValue>
+          <CardDescription>Target age to stop working. Your FIRE number is sized to sustain withdrawals from this age onward.</CardDescription>
+        </Card>
+
+        <Card>
+          <CardTitle>Monthly Investment</CardTitle>
+          <CardValue className="text-[var(--fg)]">{formatCurrency(profile.monthlyContribution)}</CardValue>
+          <CardDescription>Current monthly contribution rate. The predicted coast age below is based on this amount.</CardDescription>
         </Card>
 
         <Card className={
@@ -143,8 +140,8 @@ export function FireSummaryCards({ results, profile }: Props) {
                   <p className="text-xs font-normal text-[var(--fg-muted)]">Projected value if you keep investing {formatCurrency(profile.monthlyContribution)}/mo</p>
                 </th>
                 <th className="pb-2 align-top">
-                  <p className="text-xs font-semibold text-[var(--fg)]">Monthly Needed from This Age</p>
-                  <p className="text-xs font-normal text-[var(--fg-muted)]">Monthly contribution required from this age to hit your coast target by age {profile.targetCoastAge}</p>
+                  <p className="text-xs font-semibold text-[var(--fg)]">On-Track Benchmark</p>
+                  <p className="text-xs font-normal text-[var(--fg-muted)]">What you should have at this age if investing the recommended amount to reach your coast target by age {profile.targetCoastAge}</p>
                 </th>
               </tr>
             </thead>
@@ -158,14 +155,14 @@ export function FireSummaryCards({ results, profile }: Props) {
                   <td className="py-2 pr-4 text-[var(--fg-muted)]">{formatCurrency(pt.coastTarget, true)}</td>
                   <td className="py-2 pr-4 text-[var(--fg)]">{formatCurrency(pt.portfolio, true)}</td>
                   <td className="py-2">
-                    {pt.monthlyNeeded === 0
-                      ? <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">$0 &mdash; can coast</span>
-                      : pt.monthlyNeeded === -1
-                      ? <span className="text-xs text-[var(--fg-muted)]">&mdash;</span>
-                      : <span className={`text-xs font-medium ${pt.monthlyNeeded <= profile.monthlyContribution ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"}`}>
-                          {formatCurrency(pt.monthlyNeeded)}/mo
-                        </span>
-                    }
+                    <p className={`text-xs font-medium ${pt.portfolio >= pt.onTrackBenchmark ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"}`}>
+                      {formatCurrency(pt.onTrackBenchmark, true)}
+                    </p>
+                    <p className="text-xs text-[var(--fg-muted)]">
+                      {pt.portfolio >= pt.onTrackBenchmark
+                        ? `+${formatCurrency(pt.portfolio - pt.onTrackBenchmark, true)} ahead`
+                        : `${formatCurrency(pt.onTrackBenchmark - pt.portfolio, true)} behind`}
+                    </p>
                   </td>
                 </tr>
               ))}

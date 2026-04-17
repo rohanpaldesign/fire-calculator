@@ -47,10 +47,10 @@ export interface FireProfile {
 
 export interface CoastAgePoint {
   age: number;
-  coastTarget: number;   // coast FIRE target if you stop contributing at this exact age
-  portfolio: number;     // projected portfolio at this age (real terms, with current contributions)
-  canCoast: boolean;     // portfolio >= coastTarget (could stop contributing at this age)
-  monthlyNeeded: number; // monthly contribution needed from this age to hit coastFireAtTargetAge by targetCoastAge; 0 if already past coast target; -1 if not achievable (no years remaining)
+  coastTarget: number;      // coast FIRE target if you stop contributing at this exact age
+  portfolio: number;        // projected portfolio at this age (real terms, with current contributions)
+  canCoast: boolean;        // portfolio >= coastTarget (could stop contributing at this age)
+  onTrackBenchmark: number; // portfolio value on the ideal glide path from currentAssets to coastFireAtTargetAge using the recommended monthly contribution
 }
 
 export interface FireNumbers {

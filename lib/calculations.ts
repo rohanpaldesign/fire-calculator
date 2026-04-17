@@ -149,24 +149,24 @@ export function calcFireResults(profile: FireProfile, overrides?: WhatIfOverride
   const safeTargetCoastAge = Math.max(profile.currentAge, Math.min(profile.targetCoastAge ?? profile.retirementAge - 1, profile.retirementAge - 1));
   const coastFireAtTargetAge = calcCoastFireNumber(fireNumber, realReturn, safeTargetCoastAge, profile.retirementAge);
 
+  // Recommended monthly contribution: amount needed from today to hit coastFireAtTargetAge by targetCoastAge
+  // Used as the basis for the on-track benchmark glide path in the coast-by-age table
+  const yearsToCoast = safeTargetCoastAge - profile.currentAge;
+  const recommendedMonthly = yearsToCoast > 0
+    ? calcMonthlyContribNeeded(profile.currentAssets, realReturn, coastFireAtTargetAge, yearsToCoast)
+    : 0;
+
   // Coast by age table: for each integer age from currentAge to targetCoastAge,
-  // both coast target (at that age) and projected portfolio (real return, today's dollars)
+  // coast target (at that age), projected portfolio (real return, today's dollars),
+  // and on-track benchmark (ideal glide path using recommendedMonthly)
   const coastByAge: CoastAgePoint[] = [];
   for (let age = profile.currentAge; age <= safeTargetCoastAge; age++) {
     const yearsFromNow = age - profile.currentAge;
     const portfolio = Math.round(futureValue(profile.currentAssets, monthlyContrib, realReturn, yearsFromNow));
     const coastTarget = Math.round(calcCoastFireNumber(fireNumber, realReturn, age, profile.retirementAge));
     const canCoast = portfolio >= coastTarget;
-    const yearsToTargetCoast = safeTargetCoastAge - age;
-    let monthlyNeeded: number;
-    if (portfolio >= coastFireAtTargetAge) {
-      monthlyNeeded = 0;
-    } else if (yearsToTargetCoast <= 0) {
-      monthlyNeeded = -1; // no time left and not at target
-    } else {
-      monthlyNeeded = Math.round(calcMonthlyContribNeeded(portfolio, realReturn, coastFireAtTargetAge, yearsToTargetCoast));
-    }
-    coastByAge.push({ age, coastTarget, portfolio, canCoast, monthlyNeeded });
+    const onTrackBenchmark = Math.round(futureValue(profile.currentAssets, recommendedMonthly, realReturn, yearsFromNow));
+    coastByAge.push({ age, coastTarget, portfolio, canCoast, onTrackBenchmark });
   }
 
   // Predicted coast age: first age where portfolio (with contributions) >= coastFireAtTargetAge
