@@ -1,6 +1,5 @@
 "use client";
 import { PersonalSection } from "./PersonalSection";
-import { IncomeSection } from "./IncomeSection";
 import { ExpensesSection } from "./ExpensesSection";
 import { RetirementExpensesSection } from "./RetirementExpensesSection";
 import { AssetsSection } from "./AssetsSection";
@@ -23,8 +22,6 @@ export function ProfileForm({ profile, results, onChange, onViewResults }: Props
   return (
     <div className="space-y-8">
       <PersonalSection profile={profile} onChange={onChange} />
-      <hr className="border-[var(--border)]" />
-      <IncomeSection profile={profile} onChange={onChange} />
       <hr className="border-[var(--border)]" />
       <ExpensesSection profile={profile} onChange={onChange} />
       <hr className="border-[var(--border)]" />

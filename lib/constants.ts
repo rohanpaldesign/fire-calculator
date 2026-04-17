@@ -3,6 +3,7 @@ import type { FireProfile } from "@/types/fire";
 export const DEFAULT_PROFILE: FireProfile = {
   currentAge: 30,
   retirementAge: 55,
+  targetCoastAge: 45,
   location: "CA",
   grossIncome: 120000,
   netIncome: 85000,
@@ -21,4 +22,4 @@ export const DEFAULT_PROFILE: FireProfile = {
   baristaPartTimeIncome: 0,
 };
 
-export const STORAGE_KEY = "fire-calculator-profile-v3";
+export const STORAGE_KEY = "fire-calculator-profile-v4";

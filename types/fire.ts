@@ -23,6 +23,7 @@ export type RetirementExpenseCategories = ExpenseCategories;
 export interface FireProfile {
   currentAge: number;
   retirementAge: number;
+  targetCoastAge: number;
   location: USState;
   grossIncome: number;
   netIncome: number;
@@ -44,9 +45,17 @@ export interface FireProfile {
   baristaPartTimeIncome?: number;
 }
 
+export interface CoastAgePoint {
+  age: number;
+  coastTarget: number;   // coast FIRE target if you stop contributing at this exact age
+  portfolio: number;     // projected portfolio at this age (real terms, with current contributions)
+  canCoast: boolean;     // portfolio >= coastTarget (could stop contributing at this age)
+}
+
 export interface FireNumbers {
   fireNumber: number;
   coastFireNumber: number;
+  coastFireAtTargetAge: number;
   leanFireNumber: number;
   fatFireNumber: number;
   baristaFireNumber: number;
@@ -72,6 +81,8 @@ export interface FireTimeline {
   fireDate: Date | null;
   fireAge: number | null;
   coastFireAchievedAge: number | null;
+  predictedCoastAge: number | null;
+  coastByAge: CoastAgePoint[];
   projectedPortfolioByYear: PortfolioDataPoint[];
   monthlyContribNeeded: number | null;
   expenseReductionNeeded: number | null;

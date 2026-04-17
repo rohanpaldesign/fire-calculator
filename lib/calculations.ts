@@ -1,4 +1,4 @@
-import type { FireProfile, FireNumbers, FireProgress, FireTimeline, FireResults, PortfolioDataPoint, StateColData, RelocationOpportunity, WhatIfOverrides, ExpenseCategories } from "@/types/fire";
+import type { FireProfile, FireNumbers, FireProgress, FireTimeline, FireResults, PortfolioDataPoint, CoastAgePoint, StateColData, RelocationOpportunity, WhatIfOverrides, ExpenseCategories } from "@/types/fire";
 
 export const NATIONAL_COMFORT_RETIREMENT_BASELINE = 60000;
 
@@ -46,8 +46,8 @@ export function calcFireNumber(annualExpenses: number, swr: number): number {
   return annualExpenses / swr;
 }
 
-export function calcCoastFireNumber(fireNumber: number, realReturn: number, currentAge: number, retirementAge: number): number {
-  const years = retirementAge - currentAge;
+export function calcCoastFireNumber(fireNumber: number, realReturn: number, fromAge: number, retirementAge: number): number {
+  const years = retirementAge - fromAge;
   if (years <= 0) return fireNumber;
   return fireNumber / Math.pow(1 + realReturn, years);
 }
@@ -141,7 +141,38 @@ export function calcFireResults(profile: FireProfile, overrides?: WhatIfOverride
   const fatFireNumber = calcFireNumber(expenses, 0.03);
   const baristaExpenses = expenses - (profile.baristaPartTimeIncome ?? 0);
   const baristaFireNumber = baristaExpenses > 0 ? calcFireNumber(baristaExpenses, swr) : 0;
+
+  // Coast FIRE from today (current age)
   const coastFireNumber = calcCoastFireNumber(fireNumber, realReturn, profile.currentAge, profile.retirementAge);
+
+  // Coast FIRE at target coasting age — fixed target used for predictedCoastAge
+  const safeTargetCoastAge = Math.max(profile.currentAge, Math.min(profile.targetCoastAge ?? profile.retirementAge - 1, profile.retirementAge - 1));
+  const coastFireAtTargetAge = calcCoastFireNumber(fireNumber, realReturn, safeTargetCoastAge, profile.retirementAge);
+
+  // Coast by age table: for each integer age from currentAge to targetCoastAge,
+  // both coast target (at that age) and projected portfolio (real return, today's dollars)
+  const coastByAge: CoastAgePoint[] = [];
+  for (let age = profile.currentAge; age <= safeTargetCoastAge; age++) {
+    const yearsFromNow = age - profile.currentAge;
+    const portfolio = Math.round(futureValue(profile.currentAssets, monthlyContrib, realReturn, yearsFromNow));
+    const coastTarget = Math.round(calcCoastFireNumber(fireNumber, realReturn, age, profile.retirementAge));
+    coastByAge.push({ age, coastTarget, portfolio, canCoast: portfolio >= coastTarget });
+  }
+
+  // Predicted coast age: first age where portfolio (with contributions) >= coastFireAtTargetAge
+  // Uses real return to stay in today's dollars, same basis as coastFireAtTargetAge
+  let predictedCoastAge: number | null = null;
+  if (profile.currentAssets >= coastFireAtTargetAge) {
+    predictedCoastAge = profile.currentAge;
+  } else {
+    for (let age = profile.currentAge + 1; age <= 100; age++) {
+      const yrs = age - profile.currentAge;
+      if (futureValue(profile.currentAssets, monthlyContrib, realReturn, yrs) >= coastFireAtTargetAge) {
+        predictedCoastAge = age;
+        break;
+      }
+    }
+  }
 
   const yearsToFire = calcYearsToFire(profile.currentAssets, monthlyContrib, realReturn, fireNumber);
   const fireDate = yearsToFire != null ? new Date(new Date().getFullYear() + Math.ceil(yearsToFire), 0, 1) : null;
@@ -155,8 +186,8 @@ export function calcFireResults(profile: FireProfile, overrides?: WhatIfOverride
     ? Math.round(futureValue(profile.currentAssets, monthlyContrib, profile.nominalReturn, yearsToFire))
     : null;
 
-  const timeline = buildPortfolioTimeline(profile, fireNumber, coastFireNumber, monthlyContrib);
-  const coastFireAchievedAge = findCoastFireAge(timeline, coastFireNumber);
+  const portfolioTimeline = buildPortfolioTimeline(profile, fireNumber, coastFireNumber, monthlyContrib);
+  const coastFireAchievedAge = findCoastFireAge(portfolioTimeline, coastFireNumber);
   const yearsAvailable = profile.retirementAge - profile.currentAge;
   const monthlyContribNeeded = yearsToFire === null
     ? calcMonthlyContribNeeded(profile.currentAssets, realReturn, fireNumber, yearsAvailable)
@@ -173,7 +204,11 @@ export function calcFireResults(profile: FireProfile, overrides?: WhatIfOverride
   })() : null;
 
   return {
-    numbers: { fireNumber, coastFireNumber, leanFireNumber, fatFireNumber, baristaFireNumber, nominalFireNumber, portfolioAtRetirementAge, portfolioAtFireDate },
+    numbers: {
+      fireNumber, coastFireNumber, coastFireAtTargetAge,
+      leanFireNumber, fatFireNumber, baristaFireNumber,
+      nominalFireNumber, portfolioAtRetirementAge, portfolioAtFireDate,
+    },
     progress: {
       fireProgress: profile.currentAssets / fireNumber,
       coastFireProgress: profile.currentAssets / coastFireNumber,
@@ -181,13 +216,10 @@ export function calcFireResults(profile: FireProfile, overrides?: WhatIfOverride
       fatFireProgress: profile.currentAssets / fatFireNumber,
     },
     timeline: {
-      yearsToFire,
-      fireDate,
-      fireAge,
-      coastFireAchievedAge,
-      projectedPortfolioByYear: timeline,
-      monthlyContribNeeded,
-      expenseReductionNeeded,
+      yearsToFire, fireDate, fireAge,
+      coastFireAchievedAge, predictedCoastAge, coastByAge,
+      projectedPortfolioByYear: portfolioTimeline,
+      monthlyContribNeeded, expenseReductionNeeded,
     },
   };
 }

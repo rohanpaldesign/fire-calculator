@@ -1,14 +1,13 @@
 "use client";
 import { Card, CardTitle, CardValue, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { formatCurrency, formatYears } from "@/lib/formatters";
 import type { FireResults, FireProfile } from "@/types/fire";
 
 interface Props { results: FireResults; profile: FireProfile; }
 
 function statusBadge(progress: number) {
-  if (progress >= 1) return <Badge variant="green">Achieved ✓</Badge>;
+  if (progress >= 1) return <Badge variant="green">Achieved</Badge>;
   if (progress >= 0.5) return <Badge variant="yellow">Halfway</Badge>;
   return <Badge variant="red">In progress</Badge>;
 }
@@ -19,20 +18,155 @@ export function FireSummaryCards({ results, profile }: Props) {
   const fireYear = timeline.fireDate ? timeline.fireDate.getFullYear() : null;
   const yearsFromNow = timeline.yearsToFire !== null ? Math.ceil(timeline.yearsToFire) : null;
   const fireProgressPct = Math.min(100, Math.round(progress.fireProgress * 100));
-
-  const portfolioAtFire = numbers.portfolioAtFireDate ?? numbers.portfolioAtRetirementAge;
-  const portfolioVsTarget = portfolioAtFire - numbers.nominalFireNumber;
-  const portfolioOnTrack = portfolioAtFire >= numbers.nominalFireNumber;
+  const coastAtTargetPct = Math.min(100, Math.round((profile.currentAssets / numbers.coastFireAtTargetAge) * 100));
 
   return (
     <div className="space-y-4">
 
-      {/* ── Hero: Time to FIRE ── */}
-      <Card className="border-emerald-200 dark:border-emerald-800 bg-gradient-to-br from-emerald-50/50 to-transparent dark:from-emerald-950/30">
-        <div className="flex items-center gap-1.5 mb-3">
-          <CardTitle className="text-base">Time to FIRE</CardTitle>
-          <InfoTooltip content="How many years until your invested portfolio reaches your FIRE number — the point where you can live off investment returns indefinitely without ever working again." />
+      {/* ── Row 1: Retirement Age · FIRE Number · Coast FIRE Today · Monthly Investment ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+
+        <Card>
+          <CardTitle>Retirement Age</CardTitle>
+          <CardValue className="text-[var(--fg)]">{profile.retirementAge}</CardValue>
+          <CardDescription>Target age to stop working</CardDescription>
+        </Card>
+
+        <Card>
+          <CardTitle>FIRE Number</CardTitle>
+          <CardValue className="text-emerald-600 dark:text-emerald-400">{formatCurrency(numbers.fireNumber, true)}</CardValue>
+          <CardDescription>
+            Portfolio needed to retire permanently at {(profile.safeWithdrawalRate * 100).toFixed(1)}% withdrawal rate.
+            In today&apos;s dollars.
+          </CardDescription>
+        </Card>
+
+        <Card>
+          <div className="flex items-start justify-between mb-1">
+            <CardTitle>Coast FIRE Today</CardTitle>
+            {statusBadge(progress.coastFireProgress)}
+          </div>
+          <CardValue className="text-indigo-600 dark:text-indigo-400">{formatCurrency(numbers.coastFireNumber, true)}</CardValue>
+          <CardDescription>
+            If you stopped contributing right now, compound growth alone would reach your FIRE number by age {profile.retirementAge}.
+          </CardDescription>
+        </Card>
+
+        <Card>
+          <CardTitle>Monthly Investment</CardTitle>
+          <CardValue className="text-[var(--fg)]">{formatCurrency(profile.monthlyContribution)}</CardValue>
+          <CardDescription>Current monthly contribution rate used in all projections below.</CardDescription>
+        </Card>
+
+      </div>
+
+      {/* ── Row 2: Target Coasting Age · Coast Target at Target Age · Predicted Coast Age ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+
+        <Card>
+          <CardTitle>Target Coasting Age</CardTitle>
+          <CardValue className="text-[var(--fg)]">{profile.targetCoastAge}</CardValue>
+          <CardDescription>
+            The age you plan to stop making new contributions and let your portfolio grow on its own until retirement.
+          </CardDescription>
+        </Card>
+
+        <Card>
+          <CardTitle>Coast Target at Age {profile.targetCoastAge}</CardTitle>
+          <CardValue className="text-indigo-600 dark:text-indigo-400">{formatCurrency(numbers.coastFireAtTargetAge, true)}</CardValue>
+          <CardDescription>
+            Amount needed by age {profile.targetCoastAge} so compound growth covers the rest of the way to retirement at age {profile.retirementAge}.
+            In today&apos;s dollars.
+          </CardDescription>
+          <div className="mt-2 h-1.5 w-full rounded-full bg-[var(--border)]">
+            <div
+              className="h-1.5 rounded-full bg-indigo-400 transition-all duration-500"
+              style={{ width: `${coastAtTargetPct}%` }}
+            />
+          </div>
+          <p className="text-xs text-[var(--fg-muted)] mt-1">{coastAtTargetPct}% of this target reached today</p>
+        </Card>
+
+        <Card className={
+          timeline.predictedCoastAge !== null && timeline.predictedCoastAge <= profile.targetCoastAge
+            ? "border-emerald-200 dark:border-emerald-800 bg-emerald-50/30 dark:bg-emerald-950/20"
+            : ""
+        }>
+          <CardTitle>Predicted Coast Age</CardTitle>
+          {timeline.predictedCoastAge !== null ? (
+            <>
+              <CardValue className={
+                timeline.predictedCoastAge <= profile.targetCoastAge
+                  ? "text-emerald-600 dark:text-emerald-400"
+                  : "text-amber-600 dark:text-amber-400"
+              }>
+                Age {timeline.predictedCoastAge}
+              </CardValue>
+              <CardDescription>
+                {timeline.predictedCoastAge <= profile.currentAge
+                  ? "You can already coast. Your portfolio will reach your FIRE number by retirement with no new contributions needed."
+                  : timeline.predictedCoastAge <= profile.targetCoastAge
+                  ? `${timeline.predictedCoastAge - profile.currentAge} years from now — before your target coasting age. On track.`
+                  : `${timeline.predictedCoastAge - profile.currentAge} years from now — ${timeline.predictedCoastAge - profile.targetCoastAge} years after your target coasting age.`
+                }
+              </CardDescription>
+            </>
+          ) : (
+            <>
+              <CardValue className="text-amber-600 dark:text-amber-400">Not on track</CardValue>
+              <CardDescription>
+                At your current savings and contribution rate, your portfolio will not reach the coast target of {formatCurrency(numbers.coastFireAtTargetAge, true)} by age {profile.targetCoastAge}.
+              </CardDescription>
+            </>
+          )}
+        </Card>
+
+      </div>
+
+      {/* ── Coast FIRE by age table ── */}
+      <Card>
+        <h3 className="text-sm font-semibold text-[var(--fg)] mb-1">Coast FIRE by Age</h3>
+        <p className="text-xs text-[var(--fg-muted)] mb-3">
+          For each age from now to your target coasting age, the coast target is the amount you would need
+          at that exact age so compound growth alone reaches your FIRE number by retirement at age {profile.retirementAge}.
+          Your portfolio projection assumes continued contributions at {formatCurrency(profile.monthlyContribution)}/mo.
+          All values in today&apos;s dollars.
+        </p>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-[var(--border)] text-left">
+                <th className="pb-2 pr-4 text-xs font-semibold text-[var(--fg-muted)]">Age</th>
+                <th className="pb-2 pr-4 text-xs font-semibold text-[var(--fg-muted)]">Coast Target</th>
+                <th className="pb-2 pr-4 text-xs font-semibold text-[var(--fg-muted)]">Your Portfolio</th>
+                <th className="pb-2 text-xs font-semibold text-[var(--fg-muted)]">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {timeline.coastByAge.map((pt) => (
+                <tr
+                  key={pt.age}
+                  className={`border-b border-[var(--border)] last:border-0 ${pt.canCoast ? "bg-emerald-50/40 dark:bg-emerald-950/20" : ""}`}
+                >
+                  <td className="py-1.5 pr-4 font-medium text-[var(--fg)]">{pt.age}</td>
+                  <td className="py-1.5 pr-4 text-[var(--fg-muted)]">{formatCurrency(pt.coastTarget, true)}</td>
+                  <td className="py-1.5 pr-4 text-[var(--fg)]">{formatCurrency(pt.portfolio, true)}</td>
+                  <td className="py-1.5">
+                    {pt.canCoast
+                      ? <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">Can coast</span>
+                      : <span className="text-xs text-[var(--fg-muted)]">{formatCurrency(pt.coastTarget - pt.portfolio, true)} to go</span>
+                    }
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
+      </Card>
+
+      {/* ── Time to FIRE (milestone) ── */}
+      <Card className="border-emerald-200 dark:border-emerald-800 bg-gradient-to-br from-emerald-50/50 to-transparent dark:from-emerald-950/30">
+        <CardTitle className="text-base mb-3">Time to FIRE</CardTitle>
 
         {timeline.yearsToFire !== null ? (
           <>
@@ -42,7 +176,11 @@ export function FireSummaryCards({ results, profile }: Props) {
                   ~{fireYear}
                 </p>
                 <p className="text-sm text-[var(--fg-muted)] mt-1">
-                  {yearsFromNow === 0 ? "You have already reached FIRE!" : yearsFromNow === 1 ? "1 year from now" : `${yearsFromNow} years from now`}
+                  {yearsFromNow === 0
+                    ? "You have already reached FIRE!"
+                    : yearsFromNow === 1
+                    ? "1 year from now"
+                    : `${yearsFromNow} years from now`}
                 </p>
               </div>
               {timeline.fireAge !== null && (
@@ -52,7 +190,6 @@ export function FireSummaryCards({ results, profile }: Props) {
                 </div>
               )}
             </div>
-
             <div className="mt-3">
               <div className="flex justify-between text-xs text-[var(--fg-muted)] mb-1">
                 <span>Progress to FIRE</span>
@@ -65,7 +202,7 @@ export function FireSummaryCards({ results, profile }: Props) {
                 />
               </div>
               <p className="text-xs text-[var(--fg-muted)] mt-1">
-                {formatCurrency(profile.currentAssets, true)} saved · {formatCurrency(numbers.fireNumber, true)} needed
+                {formatCurrency(profile.currentAssets, true)} saved &middot; {formatCurrency(numbers.fireNumber, true)} needed
               </p>
             </div>
           </>
@@ -74,10 +211,10 @@ export function FireSummaryCards({ results, profile }: Props) {
             <p className="text-sm font-semibold text-amber-700 dark:text-amber-400">Not achievable on current trajectory</p>
             <div className="rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 p-3 text-xs text-amber-700 dark:text-amber-400 space-y-1">
               {timeline.monthlyContribNeeded !== null && (
-                <p>→ Increase monthly contributions to {formatCurrency(timeline.monthlyContribNeeded)}/mo</p>
+                <p>Increase monthly contributions to {formatCurrency(timeline.monthlyContribNeeded)}/mo</p>
               )}
               {timeline.expenseReductionNeeded !== null && (
-                <p>→ Or reduce annual expenses by {formatCurrency(timeline.expenseReductionNeeded)}/yr</p>
+                <p>Or reduce annual expenses by {formatCurrency(timeline.expenseReductionNeeded)}/yr</p>
               )}
             </div>
             <div className="mt-2">
@@ -93,99 +230,60 @@ export function FireSummaryCards({ results, profile }: Props) {
         )}
       </Card>
 
-      {/* ── FIRE Number + Portfolio at FIRE ── */}
+      {/* ── Lean / Fat / Barista milestone cards ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Card>
-          <div className="flex items-center gap-1.5 mb-1">
-            <CardTitle>FIRE Number</CardTitle>
-            <InfoTooltip content="The portfolio size needed to retire permanently. Calculated as Annual Retirement Expenses divided by your Safe Withdrawal Rate." />
-          </div>
-          <CardValue className="text-emerald-600 dark:text-emerald-400">{formatCurrency(numbers.fireNumber, true)}</CardValue>
-          <CardDescription>in today&apos;s dollars · {(profile.safeWithdrawalRate * 100).toFixed(1)}% SWR</CardDescription>
-          <div className="mt-2 pt-2 border-t border-[var(--border)]">
-            <p className="text-xs text-[var(--fg-muted)]">Inflation-adjusted target</p>
-            <p className="text-base font-semibold text-[var(--fg)]">{formatCurrency(numbers.nominalFireNumber, true)}</p>
-            <p className="text-xs text-[var(--fg-muted)]">in {fireYear ?? "future"} dollars</p>
-          </div>
-        </Card>
 
-        <Card>
-          <div className="flex items-center gap-1.5 mb-1">
-            <CardTitle>Portfolio at FIRE Date</CardTitle>
-            <InfoTooltip content="Projected value of your portfolio when you reach FIRE, based on your current assets, monthly contributions, and nominal investment return. Shown in future (nominal) dollars." />
-          </div>
-          <CardValue className={portfolioOnTrack ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"}>
-            {formatCurrency(portfolioAtFire, true)}
-          </CardValue>
-          <CardDescription>projected nominal value</CardDescription>
-          <div className="mt-2 pt-2 border-t border-[var(--border)]">
-            <p className={`text-xs font-medium ${portfolioOnTrack ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"}`}>
-              {portfolioOnTrack
-                ? `+${formatCurrency(portfolioVsTarget, true)} above target`
-                : `${formatCurrency(Math.abs(portfolioVsTarget), true)} below target`}
-            </p>
-            <p className="text-xs text-[var(--fg-muted)]">vs {formatCurrency(numbers.nominalFireNumber, true)} inflation-adjusted target</p>
-          </div>
-        </Card>
-      </div>
-
-      {/* ── Milestone cards ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Card>
           <div className="flex items-start justify-between mb-1">
-            <div className="flex items-center gap-1.5">
-              <CardTitle>Coast FIRE</CardTitle>
-              <InfoTooltip content="You have saved enough that — even without adding another dollar — compound growth alone will reach your full FIRE number by your target retirement age." />
-            </div>
-            {statusBadge(progress.coastFireProgress)}
-          </div>
-          <CardValue className="text-indigo-600 dark:text-indigo-400">{formatCurrency(numbers.coastFireNumber, true)}</CardValue>
-          <CardDescription>Stop contributing today and coast to FIRE by age {profile.retirementAge}</CardDescription>
-          {timeline.coastFireAchievedAge !== null && timeline.coastFireAchievedAge <= profile.currentAge && (
-            <p className="mt-2 text-xs text-emerald-600 dark:text-emerald-400 font-medium">You&apos;ve already hit Coast FIRE!</p>
-          )}
-          {timeline.coastFireAchievedAge !== null && timeline.coastFireAchievedAge > profile.currentAge && (
-            <p className="mt-2 text-xs text-[var(--fg-muted)]">Coast FIRE reached at age {timeline.coastFireAchievedAge}</p>
-          )}
-        </Card>
-
-        <Card>
-          <div className="flex items-center gap-1.5 mb-1">
             <CardTitle>Lean FIRE</CardTitle>
-            <InfoTooltip content="Financial independence on a lean budget — roughly 40k/yr or less. Enough to cover essentials with minimal luxuries. Great for those willing to live frugally in exchange for retiring much earlier." />
+            {statusBadge(progress.leanFireProgress)}
           </div>
           <CardValue className="text-amber-600 dark:text-amber-400">{formatCurrency(numbers.leanFireNumber, true)}</CardValue>
-          <CardDescription>5% SWR · frugal lifestyle (~$40k/yr)</CardDescription>
+          <CardDescription>
+            5% withdrawal rate. Covers essentials with minimal luxuries, typically under $40k/yr.
+            Good for those willing to live frugally in exchange for retiring much earlier.
+          </CardDescription>
           <div className="mt-2 h-1.5 w-full rounded-full bg-[var(--border)]">
-            <div className="h-1.5 rounded-full bg-amber-400 transition-all duration-500" style={{ width: `${Math.min(100, progress.leanFireProgress * 100)}%` }} />
+            <div
+              className="h-1.5 rounded-full bg-amber-400 transition-all duration-500"
+              style={{ width: `${Math.min(100, progress.leanFireProgress * 100)}%` }}
+            />
           </div>
           <p className="text-xs text-[var(--fg-muted)] mt-1">{Math.min(100, Math.round(progress.leanFireProgress * 100))}% there</p>
         </Card>
 
         <Card>
-          <div className="flex items-center gap-1.5 mb-1">
+          <div className="flex items-start justify-between mb-1">
             <CardTitle>Fat FIRE</CardTitle>
-            <InfoTooltip content="Financial independence with a comfortable, generous lifestyle — typically $100k+/yr. Enough for travel, dining out, hobbies, and no financial stress. Requires a larger portfolio than standard FIRE." />
+            {statusBadge(progress.fatFireProgress)}
           </div>
           <CardValue className="text-purple-600 dark:text-purple-400">{formatCurrency(numbers.fatFireNumber, true)}</CardValue>
-          <CardDescription>3% SWR · comfortable lifestyle (~$100k+/yr)</CardDescription>
+          <CardDescription>
+            3% withdrawal rate. Travel, dining, hobbies — a comfortable lifestyle with no financial stress,
+            typically $100k+/yr.
+          </CardDescription>
           <div className="mt-2 h-1.5 w-full rounded-full bg-[var(--border)]">
-            <div className="h-1.5 rounded-full bg-purple-400 transition-all duration-500" style={{ width: `${Math.min(100, progress.fatFireProgress * 100)}%` }} />
+            <div
+              className="h-1.5 rounded-full bg-purple-400 transition-all duration-500"
+              style={{ width: `${Math.min(100, progress.fatFireProgress * 100)}%` }}
+            />
           </div>
           <p className="text-xs text-[var(--fg-muted)] mt-1">{Math.min(100, Math.round(progress.fatFireProgress * 100))}% there</p>
         </Card>
 
         {(profile.baristaPartTimeIncome ?? 0) > 0 && (
           <Card>
-            <div className="flex items-center gap-1.5 mb-1">
-              <CardTitle>Barista FIRE</CardTitle>
-              <InfoTooltip content="Semi-retirement: part-time work covers daily expenses, while your portfolio covers the rest. You need a much smaller nest egg because you are not withdrawing everything from investments." />
-            </div>
+            <CardTitle>Barista FIRE</CardTitle>
             <CardValue className="text-rose-600 dark:text-rose-400">{formatCurrency(numbers.baristaFireNumber, true)}</CardValue>
-            <CardDescription>Part-time income covers {formatCurrency(profile.baristaPartTimeIncome!)}/yr of expenses</CardDescription>
+            <CardDescription>
+              Semi-retirement: part-time income of {formatCurrency(profile.baristaPartTimeIncome!)}/yr covers daily expenses
+              so you withdraw less from your portfolio. Requires a much smaller nest egg than full FIRE.
+            </CardDescription>
           </Card>
         )}
+
       </div>
+
     </div>
   );
 }
