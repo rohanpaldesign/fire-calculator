@@ -139,14 +139,21 @@ export function FireSummaryCards({ results, profile }: Props) {
                   <p className="text-xs font-semibold text-[var(--fg)]">Portfolio (at current rate)</p>
                   <p className="text-xs font-normal text-[var(--fg-muted)]">Projected value if you keep investing {formatCurrency(profile.monthlyContribution)}/mo</p>
                 </th>
-                <th className="pb-2 align-top">
+                <th className="pb-2 pr-4 align-top">
                   <p className="text-xs font-semibold text-[var(--fg)]">On-Track Benchmark</p>
                   <p className="text-xs font-normal text-[var(--fg-muted)]">What you should have at this age if investing the recommended amount to reach your coast target by age {profile.targetCoastAge}</p>
+                </th>
+                <th className="pb-2 align-top">
+                  <p className="text-xs font-semibold text-[var(--fg)]">Annual Benchmark Step</p>
+                  <p className="text-xs font-normal text-[var(--fg-muted)]">How much the benchmark increases this year — your target net portfolio growth (contributions + returns combined)</p>
                 </th>
               </tr>
             </thead>
             <tbody>
-              {timeline.coastByAge.map((pt) => (
+              {timeline.coastByAge.map((pt, i) => {
+                const prevBenchmark = i > 0 ? timeline.coastByAge[i - 1].onTrackBenchmark : null;
+                const annualStep = prevBenchmark !== null ? pt.onTrackBenchmark - prevBenchmark : null;
+                return (
                 <tr
                   key={pt.age}
                   className={`border-b border-[var(--border)] last:border-0 ${pt.canCoast ? "bg-emerald-50/40 dark:bg-emerald-950/20" : ""}`}
@@ -154,7 +161,7 @@ export function FireSummaryCards({ results, profile }: Props) {
                   <td className="py-2 pr-4 font-medium text-[var(--fg)]">{pt.age}</td>
                   <td className="py-2 pr-4 text-[var(--fg-muted)]">{formatCurrency(pt.coastTarget, true)}</td>
                   <td className="py-2 pr-4 text-[var(--fg)]">{formatCurrency(pt.portfolio, true)}</td>
-                  <td className="py-2">
+                  <td className="py-2 pr-4">
                     <p className={`text-xs font-medium ${pt.portfolio >= pt.onTrackBenchmark ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"}`}>
                       {formatCurrency(pt.onTrackBenchmark, true)}
                     </p>
@@ -164,8 +171,15 @@ export function FireSummaryCards({ results, profile }: Props) {
                         : `${formatCurrency(pt.onTrackBenchmark - pt.portfolio, true)} behind`}
                     </p>
                   </td>
+                  <td className="py-2">
+                    {annualStep !== null
+                      ? <span className="text-xs font-medium text-[var(--fg)]">{formatCurrency(annualStep, true)}</span>
+                      : <span className="text-xs text-[var(--fg-muted)]">&mdash;</span>
+                    }
+                  </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>
