@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Header } from "@/components/layout/Header";
+import { Header, type AppTab } from "@/components/layout/Header";
 import { ResultsDashboard } from "@/components/results/ResultsDashboard";
 import { WhatIfPanel } from "@/components/whatif/WhatIfPanel";
 import { RelocationPanel } from "@/components/location/RelocationPanel";
@@ -8,46 +8,21 @@ import { SetupWizard } from "@/components/setup/SetupWizard";
 import { useFireProfile } from "@/hooks/useFireProfile";
 import { useFireCalculations } from "@/hooks/useFireCalculations";
 
-type Tab = "results" | "whatif" | "relocate";
-const TABS: { id: Tab; label: string }[] = [
-  { id: "results", label: "Results" },
-  { id: "whatif", label: "What-If" },
-  { id: "relocate", label: "Relocate" },
-];
-
 export default function FireApp() {
   const { profile, hydrate, updateProfile, resetProfile, hydrated, isSetupComplete, markSetupComplete } = useFireProfile();
-  const [activeTab, setActiveTab] = useState<Tab>("results");
+  const [activeTab, setActiveTab] = useState<AppTab>("results");
   const [showWizard, setShowWizard] = useState(false);
   useEffect(() => { hydrate(); }, [hydrate]);
   const results = useFireCalculations(profile);
 
   return (
     <div className="min-h-screen">
-      <Header onReset={resetProfile} />
-
-      {/* Tab navigation — only show when setup is complete */}
-      {isSetupComplete && (
-        <div className="sticky top-[57px] z-30 border-b border-[var(--border)] bg-[var(--bg)]">
-          <div className="max-w-5xl mx-auto px-4">
-            <div className="flex overflow-x-auto">
-              {TABS.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`shrink-0 px-5 py-3 text-sm font-medium border-b-2 transition-colors ${
-                    activeTab === tab.id
-                      ? "border-emerald-500 text-emerald-600 dark:text-emerald-400"
-                      : "border-transparent text-[var(--fg-muted)] hover:text-[var(--fg)]"
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+      <Header
+        onReset={resetProfile}
+        showTabs={isSetupComplete}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+      />
 
       <main className="max-w-5xl mx-auto px-4 py-6">
 

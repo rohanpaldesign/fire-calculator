@@ -1,22 +1,28 @@
 "use client";
 import dynamic from "next/dynamic";
 import { FireSummaryCards } from "./FireSummaryCards";
-import { ProgressRing } from "./ProgressRing";
 import { Card } from "@/components/ui/card";
 import { EditableValue } from "@/components/ui/editable-value";
 import { formatCurrency } from "@/lib/formatters";
+import { calcAutoRetirementExpenses } from "@/lib/calculations";
 import type { FireResults, FireProfile } from "@/types/fire";
 const PortfolioChart = dynamic(() => import("./PortfolioChart"), { ssr: false });
 const ExpensePieChart = dynamic(() => import("./ExpensePieChart"), { ssr: false });
+
 interface Props {
   results: FireResults;
   profile: FireProfile;
   onChange: (patch: Partial<FireProfile>) => void;
   onEditAll: () => void;
 }
+
 export function ResultsDashboard({ results, profile, onChange, onEditAll }: Props) {
-  const { progress, timeline } = results;
+  const { timeline } = results;
   const hasCategories = Object.values(profile.expenseCategories ?? {}).some((v) => (v ?? 0) > 0);
+
+  const effectiveRetirementExpenses = profile.retirementExpensesMode === "auto"
+    ? calcAutoRetirementExpenses(profile)
+    : profile.retirementExpenses;
 
   return (
     <div className="space-y-6">
@@ -35,7 +41,7 @@ export function ResultsDashboard({ results, profile, onChange, onEditAll }: Prop
           />
         </div>
         <div className="flex items-center gap-2 text-sm">
-          <span className="text-[var(--fg-muted)]">Annual Expenses:</span>
+          <span className="text-[var(--fg-muted)]">Current Expenses:</span>
           <EditableValue
             value={profile.annualExpenses}
             display={formatCurrency(profile.annualExpenses, true)}
@@ -45,6 +51,20 @@ export function ResultsDashboard({ results, profile, onChange, onEditAll }: Prop
             inputWidth="w-28"
           />
         </div>
+        <div className="flex items-center gap-2 text-sm">
+          <span className="text-[var(--fg-muted)]">Retirement Expenses:</span>
+          <EditableValue
+            value={effectiveRetirementExpenses}
+            display={formatCurrency(effectiveRetirementExpenses, true)}
+            min={0}
+            onChange={(v) => onChange({ retirementExpenses: v, retirementExpensesMode: "manual" })}
+            className={`font-semibold ${profile.retirementExpensesMode === "auto" ? "text-[var(--fg-muted)]" : "text-[var(--fg)]"}`}
+            inputWidth="w-28"
+          />
+          {profile.retirementExpensesMode === "auto" && (
+            <span className="text-xs text-[var(--fg-muted)] italic">auto</span>
+          )}
+        </div>
         <button
           onClick={onEditAll}
           className="ml-auto text-xs text-[var(--fg-muted)] hover:text-[var(--fg)] underline underline-offset-2 transition-colors"
@@ -52,16 +72,6 @@ export function ResultsDashboard({ results, profile, onChange, onEditAll }: Prop
           Edit All Inputs
         </button>
       </div>
-
-      <Card>
-        <h3 className="text-sm font-semibold text-[var(--fg-muted)] uppercase tracking-wide mb-4">FIRE Progress Overview</h3>
-        <div className="flex flex-wrap justify-around gap-4">
-          <ProgressRing progress={progress.fireProgress} label="FIRE" />
-          <ProgressRing progress={progress.coastFireProgress} label="Coast FIRE" />
-          <ProgressRing progress={progress.leanFireProgress} label="Lean FIRE" />
-          <ProgressRing progress={progress.fatFireProgress} label="Fat FIRE" />
-        </div>
-      </Card>
 
       <FireSummaryCards results={results} profile={profile} onChange={onChange} />
 

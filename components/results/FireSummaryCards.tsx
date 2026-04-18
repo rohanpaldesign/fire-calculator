@@ -1,6 +1,7 @@
 "use client";
 import { Card, CardTitle, CardValue, CardDescription } from "@/components/ui/card";
 import { EditableValue } from "@/components/ui/editable-value";
+import { ProgressRing } from "./ProgressRing";
 import { formatCurrency } from "@/lib/formatters";
 import type { FireResults, FireProfile } from "@/types/fire";
 
@@ -11,7 +12,7 @@ interface Props {
 }
 
 export function FireSummaryCards({ results, profile, onChange }: Props) {
-  const { numbers, timeline } = results;
+  const { numbers, progress, timeline } = results;
 
   const fireYear = timeline.fireDate ? timeline.fireDate.getFullYear() : null;
   const yearsFromNow = timeline.yearsToFire !== null ? Math.ceil(timeline.yearsToFire) : null;
@@ -24,24 +25,31 @@ export function FireSummaryCards({ results, profile, onChange }: Props) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
         <Card>
-          <CardTitle>Retirement Goal</CardTitle>
-          <CardValue className="text-[var(--fg)]">
-            <EditableValue
-              value={profile.retirementAge}
-              display={String(profile.retirementAge)}
-              min={profile.currentAge + 2}
-              max={90}
-              onChange={(v) => onChange?.({ retirementAge: v })}
-              inputWidth="w-16"
-            />
-          </CardValue>
-          <CardDescription>Target age to stop working</CardDescription>
-          <div className="mt-3 pt-3 border-t border-[var(--border)]">
-            <p className="text-xs font-semibold text-[var(--fg)] mb-0.5">FIRE Number</p>
-            <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(numbers.fireNumber, true)}</p>
-            <p className="text-xs text-[var(--fg-muted)] mt-0.5">
-              Portfolio needed at {(profile.safeWithdrawalRate * 100).toFixed(1)}% SWR &middot; today&apos;s dollars
-            </p>
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <CardTitle>Retirement Goal</CardTitle>
+              <CardValue className="text-[var(--fg)]">
+                <EditableValue
+                  value={profile.retirementAge}
+                  display={String(profile.retirementAge)}
+                  min={profile.currentAge + 2}
+                  max={90}
+                  onChange={(v) => onChange?.({ retirementAge: v })}
+                  inputWidth="w-16"
+                />
+              </CardValue>
+              <CardDescription>Target age to stop working</CardDescription>
+              <div className="mt-3 pt-3 border-t border-[var(--border)]">
+                <p className="text-xs font-semibold text-[var(--fg)] mb-0.5">FIRE Number</p>
+                <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(numbers.fireNumber, true)}</p>
+                <p className="text-xs text-[var(--fg-muted)] mt-0.5">
+                  Portfolio needed at {(profile.safeWithdrawalRate * 100).toFixed(1)}% SWR &middot; today&apos;s dollars
+                </p>
+              </div>
+            </div>
+            <div className="shrink-0">
+              <ProgressRing progress={progress.fireProgress} label="FIRE" size={90} />
+            </div>
           </div>
         </Card>
 
@@ -111,11 +119,18 @@ export function FireSummaryCards({ results, profile, onChange }: Props) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
         <Card>
-          <CardTitle>Coast FIRE Today</CardTitle>
-          <CardValue className="text-indigo-600 dark:text-indigo-400">{formatCurrency(numbers.coastFireNumber, true)}</CardValue>
-          <CardDescription>
-            If you stopped contributing right now, compound growth alone would reach your FIRE number by age {profile.retirementAge}.
-          </CardDescription>
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <CardTitle>Coast FIRE Today</CardTitle>
+              <CardValue className="text-indigo-600 dark:text-indigo-400">{formatCurrency(numbers.coastFireNumber, true)}</CardValue>
+              <CardDescription>
+                If you stopped contributing right now, compound growth alone would reach your FIRE number by age {profile.retirementAge}.
+              </CardDescription>
+            </div>
+            <div className="shrink-0">
+              <ProgressRing progress={progress.coastFireProgress} label="Coast FIRE" size={90} />
+            </div>
+          </div>
         </Card>
 
         <Card>
