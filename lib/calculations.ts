@@ -70,22 +70,24 @@ export function calcYearsToFire(currentAssets: number, monthlyContrib: number, a
   return (lo + hi) / 2;
 }
 
-export function buildPortfolioTimeline(profile: FireProfile, fireNumber: number, coastFireNumber: number, monthlyContrib: number, annualReturn: number): PortfolioDataPoint[] {
+export function buildPortfolioTimeline(profile: FireProfile, fireNumber: number, monthlyContrib: number, annualReturn: number): PortfolioDataPoint[] {
   const currentYear = new Date().getFullYear();
   const maxYears = Math.max(profile.retirementAge - profile.currentAge + 5, 40);
   const points: PortfolioDataPoint[] = [];
   for (let y = 0; y <= maxYears; y++) {
+    const age = profile.currentAge + y;
     points.push({
-      age: profile.currentAge + y, year: currentYear + y,
+      age, year: currentYear + y,
       portfolioValue: Math.round(futureValue(profile.currentAssets, monthlyContrib, annualReturn, y)),
-      fireTarget: Math.round(fireNumber), coastFireTarget: Math.round(coastFireNumber),
+      fireTarget: Math.round(fireNumber),
+      coastFireTarget: Math.round(calcCoastFireNumber(fireNumber, annualReturn, age, profile.retirementAge)),
     });
   }
   return points;
 }
 
-export function findCoastFireAge(timeline: PortfolioDataPoint[], coastFireNumber: number): number | null {
-  for (const pt of timeline) { if (pt.portfolioValue >= coastFireNumber) return pt.age; }
+export function findCoastFireAge(timeline: PortfolioDataPoint[]): number | null {
+  for (const pt of timeline) { if (pt.portfolioValue >= pt.coastFireTarget) return pt.age; }
   return null;
 }
 
@@ -198,8 +200,8 @@ export function calcFireResults(profile: FireProfile, overrides?: WhatIfOverride
     ? Math.round(futureValue(profile.currentAssets, monthlyContrib, profile.nominalReturn, yearsToFire))
     : null;
 
-  const portfolioTimeline = buildPortfolioTimeline(profile, fireNumber, coastFireNumber, monthlyContrib, realReturn);
-  const coastFireAchievedAge = findCoastFireAge(portfolioTimeline, coastFireNumber);
+  const portfolioTimeline = buildPortfolioTimeline(profile, fireNumber, monthlyContrib, realReturn);
+  const coastFireAchievedAge = findCoastFireAge(portfolioTimeline);
   const yearsAvailable = profile.retirementAge - profile.currentAge;
   const monthlyContribNeeded = yearsToFire === null
     ? calcMonthlyContribNeeded(profile.currentAssets, realReturn, fireNumber, yearsAvailable)
