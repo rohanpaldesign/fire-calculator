@@ -12,7 +12,7 @@ export function AssetsSection({ profile, onChange }: Props) {
       <h2 className="text-base font-semibold text-[var(--fg)]">Assets &amp; Savings</h2>
 
       <div>
-        <FieldLabel htmlFor="currentAssets" tooltip="Total value of all your investment accounts today — 401k, IRA, Roth IRA, brokerage. Don't include cash savings or checking account balances.">
+        <FieldLabel htmlFor="currentAssets" tooltip="Total value of all your investment accounts today: 401k, IRA, Roth IRA, brokerage. Do not include cash savings or checking account balances.">
           Invested Portfolio
         </FieldLabel>
         <NumericInput
@@ -22,7 +22,7 @@ export function AssetsSection({ profile, onChange }: Props) {
           min={0}
           prefix="$"
         />
-        <HintText>401(k), IRA, Roth IRA, taxable brokerage — anything invested for the long term.</HintText>
+        <HintText>401(k), IRA, Roth IRA, taxable brokerage. Anything invested for the long term.</HintText>
       </div>
 
       <div>

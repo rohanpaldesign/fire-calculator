@@ -86,7 +86,7 @@ export function FireSummaryCards({ results, profile, onChange }: Props) {
                 </>
               ) : (
                 <>
-                  <p className="text-xl font-bold text-amber-600 dark:text-amber-400">&mdash;</p>
+                  <p className="text-xl font-bold text-amber-600 dark:text-amber-400">-</p>
                   <p className="text-xs text-[var(--fg-muted)] mt-0.5">Not on track</p>
                 </>
               )}
@@ -104,7 +104,7 @@ export function FireSummaryCards({ results, profile, onChange }: Props) {
                 </>
               ) : (
                 <>
-                  <p className="text-xl font-bold text-amber-600 dark:text-amber-400">&mdash;</p>
+                  <p className="text-xl font-bold text-amber-600 dark:text-amber-400">-</p>
                   <p className="text-xs text-[var(--fg-muted)] mt-0.5">Not achievable</p>
                 </>
               )}
@@ -220,7 +220,7 @@ export function FireSummaryCards({ results, profile, onChange }: Props) {
                   <td className="py-2">
                     {annualStep !== null
                       ? <span className="text-xs font-medium text-[var(--fg)]">{formatCurrency(annualStep, true)}</span>
-                      : <span className="text-xs text-[var(--fg-muted)]">&mdash;</span>
+                      : <span className="text-xs text-[var(--fg-muted)]">-</span>
                     }
                   </td>
                 </tr>

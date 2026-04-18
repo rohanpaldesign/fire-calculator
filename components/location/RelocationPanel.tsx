@@ -83,6 +83,6 @@ function OppCard({ opp, rank }: { opp: RelocationOpportunity; rank: number }) {
   );
 }
 function DeltaBadge({ delta }: { delta: number }) {
-  if (Math.abs(delta)<0.1) return <span className="text-[var(--fg-muted)]">—</span>;
+  if (Math.abs(delta)<0.1) return <span className="text-[var(--fg-muted)]">-</span>;
   return <span className={`font-semibold ${delta<0?"text-emerald-600 dark:text-emerald-400":"text-red-500"}`}>{delta<0?"":"+"}{delta.toFixed(1)} yrs</span>;
 }

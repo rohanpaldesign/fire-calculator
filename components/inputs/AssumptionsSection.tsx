@@ -90,7 +90,7 @@ export function AssumptionsSection({ profile, onChange }: Props) {
           <HintText>Fed long-run target is 2%. Recent avg ~3%.</HintText>
         </div>
         <div>
-          <FieldLabel tooltip="Annual return minus inflation — what your portfolio actually earns in today's dollars. This is used to calculate your FIRE and Coast FIRE numbers so they're expressed in current purchasing power.">
+          <FieldLabel tooltip="Annual return minus inflation: what your portfolio actually earns in today's dollars. Used to calculate your FIRE and Coast FIRE numbers in current purchasing power.">
             Real Return
           </FieldLabel>
           <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-input)] px-3 py-2 text-sm text-emerald-600 dark:text-emerald-400 font-medium">

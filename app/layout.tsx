@@ -8,7 +8,7 @@ const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "FIRE Calculator — Financial Independence, Retire Early",
+  title: "FIRE Calculator - Financial Independence, Retire Early",
   description: "Calculate your FIRE number, Coast FIRE, Lean FIRE, Fat FIRE, and path to financial independence.",
 };
 

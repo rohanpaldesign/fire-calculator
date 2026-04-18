@@ -44,7 +44,7 @@ export function SetupWizard({ profile, onChange, onComplete, onClose, isFirstTim
               {isFirstTime ? "Set Up Your FIRE Plan" : "Edit All Inputs"}
             </h2>
             <p className="text-xs text-[var(--fg-muted)] mt-0.5">
-              Step {step + 1} of {STEPS.length} &mdash; {STEPS[step]}
+              Step {step + 1} of {STEPS.length}: {STEPS[step]}
             </p>
           </div>
           {onClose && (
@@ -136,7 +136,7 @@ export function SetupWizard({ profile, onChange, onComplete, onClose, isFirstTim
                 <div>
                   <label className="block text-sm font-medium text-[var(--fg)] mb-1">Invested Portfolio</label>
                   <p className="text-xs text-[var(--fg-muted)] mb-1.5">
-                    Total in 401(k), IRA, Roth IRA, brokerage &mdash; anything invested for the long term.
+                    Total in 401(k), IRA, Roth IRA, brokerage. Anything invested for the long term.
                   </p>
                   <NumericInput
                     value={profile.currentAssets}

@@ -12,7 +12,7 @@ interface Props { profile: FireProfile; onChange: (patch: Partial<FireProfile>) 
 const CATEGORIES: { key: keyof ExpenseCategories; label: string; icon: string; tooltip: string }[] = [
   { key: "housing",         label: "Housing (rent/mortgage)",  icon: "🏠", tooltip: "Rent, mortgage payment, renters or homeowners insurance, HOA fees." },
   { key: "utilities",       label: "Utilities",                icon: "💡", tooltip: "Electricity, gas, water, trash, internet." },
-  { key: "groceries",       label: "Groceries",                icon: "🛒", tooltip: "Food at home — grocery stores, farmers markets, meal kits." },
+  { key: "groceries",       label: "Groceries",                icon: "🛒", tooltip: "Food at home: grocery stores, farmers markets, meal kits." },
   { key: "dining",          label: "Dining Out",               icon: "🍽️", tooltip: "Restaurants, takeout, coffee shops, bars." },
   { key: "healthcare",      label: "Healthcare",               icon: "🏥", tooltip: "Health insurance premiums (your share), copays, prescriptions, gym membership." },
   { key: "medications",     label: "Prescriptions & Meds",    icon: "💊", tooltip: "Prescription drugs, OTC medications, supplements." },
@@ -48,12 +48,12 @@ export function ExpensesSection({ profile, onChange }: Props) {
       <h2 className="text-base font-semibold text-[var(--fg)]">Current Monthly Expenses</h2>
 
       <div className="rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 px-3 py-2 text-xs text-blue-700 dark:text-blue-300">
-        Enter amounts in <strong>today&apos;s dollars</strong> — do not adjust for inflation.
+        Enter amounts in <strong>today&apos;s dollars</strong>. Do not adjust for inflation.
         Inflation ({(profile.inflationRate * 100).toFixed(1)}%/yr) is applied automatically in all projections.
       </div>
 
       <div>
-        <FieldLabel htmlFor="monthlyExpenses" tooltip="Your total monthly spending — rent, food, subscriptions, everything. This directly sets your FIRE number: the more you spend, the more you need to save.">
+        <FieldLabel htmlFor="monthlyExpenses" tooltip="Your total monthly spending: rent, food, subscriptions, everything. This directly sets your FIRE number. The more you spend, the more you need to save.">
           Monthly Expenses
         </FieldLabel>
         <NumericInput
@@ -75,7 +75,7 @@ export function ExpensesSection({ profile, onChange }: Props) {
         className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 font-medium hover:underline"
       >
         {showCats ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-        {showCats ? "Hide" : "Break down"} by category (optional — enables smarter retirement estimate)
+        {showCats ? "Hide" : "Break down"} by category (optional, enables smarter retirement estimate)
       </button>
 
       {showCats && (

@@ -67,7 +67,7 @@ export function RetirementExpensesSection({ profile, onChange }: Props) {
     <div className="space-y-4">
       <div className="flex items-center gap-2">
         <h2 className="text-base font-semibold text-[var(--fg)]">Retirement Expenses</h2>
-        <InfoTooltip content="How much you expect to spend each month in retirement. Often different from today — no commute costs but higher healthcare. Used to calculate your FIRE number." />
+        <InfoTooltip content="How much you expect to spend each month in retirement. Often different from today: no commute costs, but higher healthcare. Used to calculate your FIRE number." />
       </div>
       <p className="text-xs text-[var(--fg-muted)] -mt-2">
         What you spend in retirement sets your FIRE target. This can differ a lot from your current spending.
@@ -102,7 +102,7 @@ export function RetirementExpensesSection({ profile, onChange }: Props) {
       </div>
 
       <div className="rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 px-3 py-2 text-xs text-blue-700 dark:text-blue-300">
-        Enter amounts in <strong>today&apos;s dollars</strong> — do not adjust for future inflation.
+        Enter amounts in <strong>today&apos;s dollars</strong>. Do not adjust for future inflation.
         The calculator handles inflation ({(profile.inflationRate * 100).toFixed(1)}%/yr) automatically.
       </div>
 
@@ -110,7 +110,7 @@ export function RetirementExpensesSection({ profile, onChange }: Props) {
       {mode === "auto" && (
         <div className="space-y-4">
           <div>
-            <FieldLabel tooltip="Retirement spending as a percentage of your current spending. 80% is a common rule of thumb — lower work-related costs offset by more leisure.">
+            <FieldLabel tooltip="Retirement spending as a percentage of your current spending. 80% is a common rule of thumb: lower work-related costs offset by more leisure.">
               Retirement Lifestyle Factor
             </FieldLabel>
             <div className="flex items-center gap-3">
