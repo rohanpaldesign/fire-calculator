@@ -169,15 +169,17 @@ export function calcFireResults(profile: FireProfile, overrides?: WhatIfOverride
     coastByAge.push({ age, coastTarget, portfolio, canCoast, onTrackBenchmark });
   }
 
-  // Predicted coast age: first age where portfolio (with contributions) >= coastFireAtTargetAge
-  // Uses real return to stay in today's dollars, same basis as coastFireAtTargetAge
+  // Predicted coast age: first age where portfolio (with contributions) >= coast target AT THAT AGE
+  // Matches the canCoast logic in the coast-by-age table: portfolio >= fireNumber/(1+r)^(retirementAge-age)
   let predictedCoastAge: number | null = null;
-  if (profile.currentAssets >= coastFireAtTargetAge) {
+  if (profile.currentAssets >= calcCoastFireNumber(fireNumber, realReturn, profile.currentAge, profile.retirementAge)) {
     predictedCoastAge = profile.currentAge;
   } else {
     for (let age = profile.currentAge + 1; age <= 100; age++) {
       const yrs = age - profile.currentAge;
-      if (futureValue(profile.currentAssets, monthlyContrib, realReturn, yrs) >= coastFireAtTargetAge) {
+      const portfolioAtAge = futureValue(profile.currentAssets, monthlyContrib, realReturn, yrs);
+      const coastTargetAtAge = calcCoastFireNumber(fireNumber, realReturn, age, profile.retirementAge);
+      if (portfolioAtAge >= coastTargetAtAge) {
         predictedCoastAge = age;
         break;
       }
