@@ -5,8 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency, formatYears, formatPercent } from "@/lib/formatters";
 import { calcFireResults, calcAutoRetirementExpenses } from "@/lib/calculations";
-import { COL_DATA_BY_NAME, getColForState } from "@/lib/cost-of-living";
-import type { FireProfile, FireResults, USState } from "@/types/fire";
+import type { FireProfile, FireResults } from "@/types/fire";
 
 interface Props { profile: FireProfile; baseResults: FireResults; }
 
@@ -18,17 +17,6 @@ export function WhatIfPanel({ profile, baseResults }: Props) {
   const [monthlyContrib, setMonthlyContrib] = useState(profile.monthlyContribution);
   const [retirementExpenses, setRetirementExpenses] = useState(baseRetirementExpenses);
   const [realReturn, setRealReturn] = useState(profile.realReturn);
-  const [whatIfLocation, setWhatIfLocation] = useState<USState>(profile.location);
-
-  const currentColData = getColForState(profile.location);
-
-  function handleLocationChange(newState: USState) {
-    setWhatIfLocation(newState);
-    const targetCol = getColForState(newState);
-    if (targetCol && currentColData) {
-      setRetirementExpenses(Math.round(baseRetirementExpenses * (targetCol.colIndex / currentColData.colIndex)));
-    }
-  }
 
   const whatIfResults = calcFireResults(profile, { monthlyContribution: monthlyContrib, retirementExpenses, realReturn });
   const baseYears = baseResults.timeline.yearsToFire;
@@ -36,8 +24,6 @@ export function WhatIfPanel({ profile, baseResults }: Props) {
   const delta = baseYears !== null && whatIfYears !== null ? whatIfYears - baseYears : null;
   const deltaLabel = delta === null ? "N/A" : delta < -0.1 ? Math.abs(delta).toFixed(1) + " yrs sooner" : delta > 0.1 ? delta.toFixed(1) + " yrs later" : "No change";
   const deltaVariant = delta === null ? "muted" : delta < -0.1 ? "green" : delta > 0.1 ? "red" : "muted";
-
-  const whatIfColData = getColForState(whatIfLocation);
 
   return (
     <div className="space-y-6">
@@ -54,26 +40,6 @@ export function WhatIfPanel({ profile, baseResults }: Props) {
         <Badge variant={deltaVariant} className="text-sm px-3 py-1">{deltaLabel}</Badge>
       </Card>
       <div className="space-y-6">
-
-        {/* State selector */}
-        <div>
-          <label className="text-sm font-medium text-[var(--fg)] block mb-1">Location</label>
-          <select
-            value={whatIfLocation}
-            onChange={(e) => handleLocationChange(e.target.value as USState)}
-            className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-input)] px-3 py-2 text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-emerald-400"
-          >
-            {COL_DATA_BY_NAME.map((s) => (
-              <option key={s.state} value={s.state}>{s.name}</option>
-            ))}
-          </select>
-          {whatIfColData && currentColData && whatIfLocation !== profile.location && (
-            <p className="text-xs text-[var(--fg-muted)] mt-1">
-              CoL index {whatIfColData.colIndex.toFixed(0)} vs your current {currentColData.colIndex.toFixed(0)} - expenses adjusted accordingly
-            </p>
-          )}
-        </div>
-
         <SliderRow
           label="Monthly Contribution"
           value={monthlyContrib}
@@ -122,13 +88,6 @@ export function WhatIfPanel({ profile, baseResults }: Props) {
               <Row label="Coast FIRE Number" base={formatCurrency(baseResults.numbers.coastFireNumber, true)} whatif={formatCurrency(whatIfResults.numbers.coastFireNumber, true)} />
               <Row label="Monthly Contribution" base={formatCurrency(profile.monthlyContribution)} whatif={formatCurrency(monthlyContrib)} />
               <Row label="Retirement Expenses" base={formatCurrency(baseRetirementExpenses) + "/yr"} whatif={formatCurrency(retirementExpenses) + "/yr"} />
-              {whatIfLocation !== profile.location && currentColData && whatIfColData && (
-                <Row
-                  label="Location"
-                  base={currentColData.name}
-                  whatif={whatIfColData.name}
-                />
-              )}
             </tbody>
           </table>
         </div>

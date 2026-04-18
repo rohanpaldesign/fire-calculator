@@ -54,7 +54,7 @@ export default function FireApp() {
               />
             )}
             {activeTab === "whatif" && <WhatIfPanel profile={profile} baseResults={results} />}
-            {activeTab === "relocate" && <RelocationPanel profile={profile} baseResults={results} />}
+            {activeTab === "relocate" && <RelocationPanel profile={profile} baseResults={results} onChange={updateProfile} />}
           </>
         )}
 

@@ -7,8 +7,14 @@ import { calcRelocationOpportunities } from "@/lib/calculations";
 import { COL_DATA_UNIQUE, getColForState } from "@/lib/cost-of-living";
 import type { FireProfile, FireResults, RelocationOpportunity } from "@/types/fire";
 import { MapPin, TrendingDown, TrendingUp } from "lucide-react";
-interface Props { profile: FireProfile; baseResults: FireResults; }
-export function RelocationPanel({ profile, baseResults }: Props) {
+import { COL_DATA_BY_NAME } from "@/lib/cost-of-living";
+import type { USState } from "@/types/fire";
+interface Props {
+  profile: FireProfile;
+  baseResults: FireResults;
+  onChange: (patch: Partial<FireProfile>) => void;
+}
+export function RelocationPanel({ profile, baseResults, onChange }: Props) {
   const [showAll, setShowAll] = useState(false);
   const opportunities = useMemo(()=>calcRelocationOpportunities(profile,COL_DATA_UNIQUE,baseResults.timeline.yearsToFire),[profile,baseResults.timeline.yearsToFire]);
   const currentState = getColForState(profile.location);
@@ -20,6 +26,20 @@ export function RelocationPanel({ profile, baseResults }: Props) {
         <h2 className="text-lg font-semibold text-[var(--fg)]">Relocation Analysis</h2>
         <p className="text-sm text-[var(--fg-muted)] mt-0.5">How much sooner could you retire by moving to a lower cost-of-living state?</p>
       </div>
+
+      <div>
+        <label className="text-sm font-medium text-[var(--fg)] block mb-1">Your Current State</label>
+        <select
+          value={profile.location}
+          onChange={(e) => onChange({ location: e.target.value as USState })}
+          className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-input)] px-3 py-2 text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-emerald-400"
+        >
+          {COL_DATA_BY_NAME.map((s) => (
+            <option key={s.state} value={s.state}>{s.name}</option>
+          ))}
+        </select>
+      </div>
+
       {currentState && (
         <Card className="flex items-center gap-3">
           <MapPin className="h-5 w-5 text-emerald-500 shrink-0" />
