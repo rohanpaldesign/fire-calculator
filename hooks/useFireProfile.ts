@@ -15,9 +15,12 @@ function loadFromStorage(): FireProfile {
 export function useFireProfile() {
   const [profile, setProfileState] = useState<FireProfile>(DEFAULT_PROFILE);
   const [hydrated, setHydrated] = useState(false);
+  const [isSetupComplete, setIsSetupComplete] = useState(false);
 
   const hydrate = useCallback(() => {
     if (hydrated) return;
+    const hasStored = typeof window !== "undefined" && !!localStorage.getItem(STORAGE_KEY);
+    setIsSetupComplete(hasStored);
     setProfileState(loadFromStorage());
     setHydrated(true);
   }, [hydrated]);
@@ -33,7 +36,12 @@ export function useFireProfile() {
   const resetProfile = useCallback(() => {
     try { localStorage.removeItem(STORAGE_KEY); } catch {}
     setProfileState(DEFAULT_PROFILE);
+    setIsSetupComplete(false);
   }, []);
 
-  return { profile, hydrate, updateProfile, resetProfile, hydrated };
+  const markSetupComplete = useCallback(() => {
+    setIsSetupComplete(true);
+  }, []);
+
+  return { profile, hydrate, updateProfile, resetProfile, hydrated, isSetupComplete, markSetupComplete };
 }

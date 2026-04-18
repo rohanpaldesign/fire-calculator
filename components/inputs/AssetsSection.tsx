@@ -2,38 +2,14 @@
 import { NumericInput } from "@/components/ui/numeric-input";
 import { HintText } from "@/components/ui/label";
 import { FieldLabel } from "@/components/ui/info-tooltip";
-import { Button } from "@/components/ui/button";
-import { formatCurrency } from "@/lib/formatters";
 import type { FireProfile } from "@/types/fire";
 
 interface Props { profile: FireProfile; onChange: (patch: Partial<FireProfile>) => void; }
 
 export function AssetsSection({ profile, onChange }: Props) {
-  const maxSavable = profile.netIncome > 0
-    ? Math.max(0, Math.round((profile.netIncome - profile.annualExpenses) / 12))
-    : null;
-
-  const isUsingMax = maxSavable !== null && Math.abs(profile.monthlyContribution - maxSavable) < 10;
-
   return (
     <div className="space-y-4">
-      <h2 className="text-base font-semibold text-[var(--fg)]">Assets & Savings</h2>
-
-      <div>
-        <div className="flex items-center gap-2 mb-1">
-          <label htmlFor="netWorth" className="text-sm font-medium text-[var(--fg)]">Total Net Worth</label>
-          <span className="text-[10px] font-normal px-1.5 py-0.5 rounded bg-[var(--border)] text-[var(--fg-muted)]">Optional</span>
-        </div>
-        <p className="text-xs text-[var(--fg-muted)] mb-1.5">Everything you own minus everything you owe — home equity, savings, investments, etc. Not used in FIRE calculations; shown in your snapshot.</p>
-        <NumericInput
-          id="netWorth"
-          value={profile.netWorth ?? 0}
-          onChange={(v) => onChange({ netWorth: v > 0 ? v : undefined })}
-          min={0}
-          prefix="$"
-          placeholder="0"
-        />
-      </div>
+      <h2 className="text-base font-semibold text-[var(--fg)]">Assets &amp; Savings</h2>
 
       <div>
         <FieldLabel htmlFor="currentAssets" tooltip="Total value of all your investment accounts today — 401k, IRA, Roth IRA, brokerage. Don't include cash savings or checking account balances.">
@@ -50,7 +26,7 @@ export function AssetsSection({ profile, onChange }: Props) {
       </div>
 
       <div>
-        <FieldLabel htmlFor="monthlyContribution" tooltip="How much you invest each month across all accounts. This is the most powerful lever for reaching FIRE faster — a higher contribution rate means compounding works harder for you.">
+        <FieldLabel htmlFor="monthlyContribution" tooltip="How much you invest each month across all accounts. This is the most powerful lever for reaching FIRE faster.">
           Monthly Investment Contribution
         </FieldLabel>
         <NumericInput
@@ -60,38 +36,6 @@ export function AssetsSection({ profile, onChange }: Props) {
           min={0}
           prefix="$"
         />
-        {maxSavable !== null && (
-          <div className="mt-1.5 flex items-center gap-2">
-            <HintText className="mt-0">
-              Based on your income &amp; expenses you could invest up to {formatCurrency(maxSavable)}/mo.
-            </HintText>
-            {!isUsingMax && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-xs text-emerald-600 dark:text-emerald-400 px-2 py-0.5 h-auto"
-                onClick={() => onChange({ monthlyContribution: maxSavable })}
-              >
-                Use max →
-              </Button>
-            )}
-          </div>
-        )}
-      </div>
-
-      <div>
-        <FieldLabel htmlFor="baristaIncome" tooltip="Annual income from part-time work in semi-retirement (e.g. a barista job, consulting, freelance). This reduces how large your portfolio needs to be — you only need your investments to cover the gap between this income and your expenses.">
-          Part-time Income in Semi-Retirement <span className="text-[var(--fg-muted)] font-normal">(Barista FIRE)</span>
-        </FieldLabel>
-        <NumericInput
-          id="baristaIncome"
-          value={profile.baristaPartTimeIncome ?? 0}
-          onChange={(v) => onChange({ baristaPartTimeIncome: v })}
-          min={0}
-          prefix="$"
-          placeholder="0"
-        />
-        <HintText>Annual income from part-time work — reduces the portfolio you need. Leave at 0 to skip.</HintText>
       </div>
     </div>
   );

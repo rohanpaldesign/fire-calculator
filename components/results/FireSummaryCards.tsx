@@ -1,11 +1,16 @@
 "use client";
 import { Card, CardTitle, CardValue, CardDescription } from "@/components/ui/card";
+import { EditableValue } from "@/components/ui/editable-value";
 import { formatCurrency } from "@/lib/formatters";
 import type { FireResults, FireProfile } from "@/types/fire";
 
-interface Props { results: FireResults; profile: FireProfile; }
+interface Props {
+  results: FireResults;
+  profile: FireProfile;
+  onChange?: (patch: Partial<FireProfile>) => void;
+}
 
-export function FireSummaryCards({ results, profile }: Props) {
+export function FireSummaryCards({ results, profile, onChange }: Props) {
   const { numbers, timeline } = results;
 
   const fireYear = timeline.fireDate ? timeline.fireDate.getFullYear() : null;
@@ -20,7 +25,16 @@ export function FireSummaryCards({ results, profile }: Props) {
 
         <Card>
           <CardTitle>Retirement Goal</CardTitle>
-          <CardValue className="text-[var(--fg)]">{profile.retirementAge}</CardValue>
+          <CardValue className="text-[var(--fg)]">
+            <EditableValue
+              value={profile.retirementAge}
+              display={String(profile.retirementAge)}
+              min={profile.currentAge + 2}
+              max={90}
+              onChange={(v) => onChange?.({ retirementAge: v })}
+              inputWidth="w-16"
+            />
+          </CardValue>
           <CardDescription>Target age to stop working</CardDescription>
           <div className="mt-3 pt-3 border-t border-[var(--border)]">
             <p className="text-xs font-semibold text-[var(--fg)] mb-0.5">FIRE Number</p>
@@ -33,7 +47,15 @@ export function FireSummaryCards({ results, profile }: Props) {
 
         <Card>
           <CardTitle>Current Monthly Investment</CardTitle>
-          <CardValue className="text-[var(--fg)]">{formatCurrency(profile.monthlyContribution)}</CardValue>
+          <CardValue className="text-[var(--fg)]">
+            <EditableValue
+              value={profile.monthlyContribution}
+              display={formatCurrency(profile.monthlyContribution)}
+              min={0}
+              onChange={(v) => onChange?.({ monthlyContribution: v })}
+              inputWidth="w-24"
+            />
+          </CardValue>
           <CardDescription>Current contribution rate. Both projections below assume this amount.</CardDescription>
 
           <div className="grid grid-cols-2 gap-3 mt-3 pt-3 border-t border-[var(--border)]">
@@ -104,7 +126,15 @@ export function FireSummaryCards({ results, profile }: Props) {
           <div className="grid grid-cols-2 gap-3 mt-3 pt-3 border-t border-[var(--border)]">
             <div>
               <p className="text-xs font-semibold text-[var(--fg)] mb-0.5">Target Coasting Age</p>
-              <p className="text-2xl font-bold text-[var(--fg)]">{profile.targetCoastAge}</p>
+              <EditableValue
+                value={profile.targetCoastAge}
+                display={String(profile.targetCoastAge)}
+                min={profile.currentAge + 1}
+                max={profile.retirementAge - 1}
+                onChange={(v) => onChange?.({ targetCoastAge: v })}
+                className="text-2xl font-bold text-[var(--fg)]"
+                inputWidth="w-16"
+              />
               <p className="text-xs text-[var(--fg-muted)] mt-0.5">Age to stop new contributions</p>
             </div>
             <div>
