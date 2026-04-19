@@ -64,42 +64,18 @@ export function FireSummaryCards({ results, profile, onChange }: Props) {
               inputWidth="w-24"
             />
           </CardValue>
-          <CardDescription>Current contribution rate. Both projections below assume this amount.</CardDescription>
+          <CardDescription>Current contribution rate used in all projections below.</CardDescription>
 
           <div className="grid grid-cols-2 gap-3 mt-3 pt-3 border-t border-[var(--border)]">
 
-            {/* Predicted Coast Age */}
-            <div>
-              <p className="text-xs font-semibold text-[var(--fg)] mb-1">Predicted Coast Age</p>
-              {timeline.predictedCoastAge !== null ? (
-                <>
-                  <p className={`text-xl font-bold ${timeline.predictedCoastAge <= profile.targetCoastAge ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"}`}>
-                    Age {timeline.predictedCoastAge}
-                  </p>
-                  <p className="text-xs text-[var(--fg-muted)] mt-0.5">
-                    {timeline.predictedCoastAge <= profile.currentAge
-                      ? "Can coast now"
-                      : timeline.predictedCoastAge <= profile.targetCoastAge
-                      ? `${timeline.predictedCoastAge - profile.currentAge}yr \u00b7 on track`
-                      : `${timeline.predictedCoastAge - profile.currentAge}yr \u00b7 ${timeline.predictedCoastAge - profile.targetCoastAge}yr late`}
-                  </p>
-                </>
-              ) : (
-                <>
-                  <p className="text-xl font-bold text-amber-600 dark:text-amber-400">-</p>
-                  <p className="text-xs text-[var(--fg-muted)] mt-0.5">Not on track</p>
-                </>
-              )}
-            </div>
-
-            {/* Time to FIRE */}
+            {/* Time to FIRE — left */}
             <div>
               <p className="text-xs font-semibold text-[var(--fg)] mb-1">Time to FIRE</p>
               {timeline.yearsToFire !== null ? (
                 <>
                   <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400">~{fireYear}</p>
                   <p className="text-xs text-[var(--fg-muted)] mt-0.5">
-                    {timeline.fireAge !== null ? `Age ${timeline.fireAge} \u00b7 ` : ""}{yearsFromNow === 1 ? "1yr" : `${yearsFromNow}yr`}
+                    {yearsFromNow} {yearsFromNow === 1 ? "year" : "years"} left
                   </p>
                 </>
               ) : (
@@ -110,13 +86,69 @@ export function FireSummaryCards({ results, profile, onChange }: Props) {
               )}
             </div>
 
+            {/* Predicted Coast Age — right */}
+            <div>
+              <p className="text-xs font-semibold text-[var(--fg)] mb-1">Predicted Coast Age</p>
+              {timeline.predictedCoastAge !== null ? (
+                <>
+                  <p className={`text-xl font-bold ${timeline.predictedCoastAge <= profile.targetCoastAge ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"}`}>
+                    Age {timeline.predictedCoastAge}
+                  </p>
+                  <p className="text-xs text-[var(--fg-muted)] mt-0.5">
+                    {timeline.predictedCoastAge <= profile.currentAge
+                      ? "Can coast now"
+                      : `${profile.retirementAge - timeline.predictedCoastAge} yrs from retirement`}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-xl font-bold text-amber-600 dark:text-amber-400">-</p>
+                  <p className="text-xs text-[var(--fg-muted)] mt-0.5">Not on track</p>
+                </>
+              )}
+            </div>
+
           </div>
         </Card>
 
       </div>
 
-      {/* ── Row 2: Coast FIRE Today · Coast Goals ── */}
+      {/* ── Row 2: Coast Goals · Coast FIRE Today ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+        <Card>
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <CardTitle>Coast Goals</CardTitle>
+              <CardDescription>
+                Stop contributing at age {profile.targetCoastAge} and let compound growth reach your FIRE number by {profile.retirementAge}.
+              </CardDescription>
+              <div className="grid grid-cols-2 gap-3 mt-3 pt-3 border-t border-[var(--border)]">
+                <div>
+                  <p className="text-xs font-semibold text-[var(--fg)] mb-0.5">Target Coasting Age</p>
+                  <EditableValue
+                    value={profile.targetCoastAge}
+                    display={String(profile.targetCoastAge)}
+                    min={profile.currentAge + 1}
+                    max={profile.retirementAge - 1}
+                    onChange={(v) => onChange?.({ targetCoastAge: v })}
+                    className="text-2xl font-bold text-[var(--fg)]"
+                    inputWidth="w-16"
+                  />
+                  <p className="text-xs text-[var(--fg-muted)] mt-0.5">Age to stop contributions</p>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-[var(--fg)] mb-0.5">Coast Target at {profile.targetCoastAge}</p>
+                  <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{formatCurrency(numbers.coastFireAtTargetAge, true)}</p>
+                  <p className="text-xs text-[var(--fg-muted)] mt-0.5">Needed to coast to FIRE by {profile.retirementAge}</p>
+                </div>
+              </div>
+            </div>
+            <div className="shrink-0">
+              <ProgressRing progress={coastAtTargetPct / 100} label="Coast at target" size={90} />
+            </div>
+          </div>
+        </Card>
 
         <Card>
           <div className="flex items-start justify-between gap-4">
@@ -133,65 +165,34 @@ export function FireSummaryCards({ results, profile, onChange }: Props) {
           </div>
         </Card>
 
-        <Card>
-          <CardTitle>Coast Goals</CardTitle>
-          <CardDescription>
-            Your plan to stop contributing at age {profile.targetCoastAge} and let compound growth cover the rest to retirement at age {profile.retirementAge}.
-          </CardDescription>
-          <div className="grid grid-cols-2 gap-3 mt-3 pt-3 border-t border-[var(--border)]">
-            <div>
-              <p className="text-xs font-semibold text-[var(--fg)] mb-0.5">Target Coasting Age</p>
-              <EditableValue
-                value={profile.targetCoastAge}
-                display={String(profile.targetCoastAge)}
-                min={profile.currentAge + 1}
-                max={profile.retirementAge - 1}
-                onChange={(v) => onChange?.({ targetCoastAge: v })}
-                className="text-2xl font-bold text-[var(--fg)]"
-                inputWidth="w-16"
-              />
-              <p className="text-xs text-[var(--fg-muted)] mt-0.5">Age to stop new contributions</p>
-            </div>
-            <div>
-              <p className="text-xs font-semibold text-[var(--fg)] mb-0.5">Coast Target at {profile.targetCoastAge}</p>
-              <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{formatCurrency(numbers.coastFireAtTargetAge, true)}</p>
-              <p className="text-xs text-[var(--fg-muted)] mt-0.5">Needed to coast to FIRE by {profile.retirementAge}</p>
-              <div className="mt-1.5 h-1.5 w-full rounded-full bg-[var(--border)]">
-                <div className="h-1.5 rounded-full bg-indigo-400 transition-all duration-500" style={{ width: `${coastAtTargetPct}%` }} />
-              </div>
-              <p className="text-xs text-[var(--fg-muted)] mt-0.5">{coastAtTargetPct}% reached today</p>
-            </div>
-          </div>
-        </Card>
-
       </div>
 
       {/* ── Coast FIRE by age table ── */}
       <Card>
         <h3 className="text-sm font-semibold text-[var(--fg)] mb-3">Coast FIRE by Age</h3>
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-sm table-fixed">
             <thead>
               <tr className="border-b border-[var(--border)] text-left">
-                <th className="pb-2 pr-4 align-top">
+                <th className="w-1/5 pb-2 pr-4 align-top">
                   <p className="text-xs font-semibold text-[var(--fg)]">Age</p>
-                  <p className="text-xs font-normal text-[var(--fg-muted)]">Your age</p>
+                  <p className="text-xs font-normal text-[var(--fg-muted)] pt-1">Your age</p>
                 </th>
-                <th className="pb-2 pr-4 align-top">
+                <th className="w-1/5 pb-2 pr-4 align-top">
                   <p className="text-xs font-semibold text-[var(--fg)]">Coast Target</p>
-                  <p className="text-xs font-normal text-[var(--fg-muted)]">Amount needed to stop contributing at this age and still reach FIRE by {profile.retirementAge}</p>
+                  <p className="text-xs font-normal text-[var(--fg-muted)] pt-1">Stop contributing here and still hit FIRE by retirement</p>
                 </th>
-                <th className="pb-2 pr-4 align-top">
-                  <p className="text-xs font-semibold text-[var(--fg)]">Portfolio (at current rate)</p>
-                  <p className="text-xs font-normal text-[var(--fg-muted)]">Projected value if you keep investing {formatCurrency(profile.monthlyContribution)}/mo</p>
+                <th className="w-1/5 pb-2 pr-4 align-top">
+                  <p className="text-xs font-semibold text-[var(--fg)]">Portfolio</p>
+                  <p className="text-xs font-normal text-[var(--fg-muted)] pt-1">Projected at {formatCurrency(profile.monthlyContribution)}/mo</p>
                 </th>
-                <th className="pb-2 pr-4 align-top">
+                <th className="w-1/5 pb-2 pr-4 align-top">
                   <p className="text-xs font-semibold text-[var(--fg)]">On-Track Goal</p>
-                  <p className="text-xs font-normal text-[var(--fg-muted)]">What you should have at this age if investing the recommended amount to reach your coast target by age {profile.targetCoastAge}</p>
+                  <p className="text-xs font-normal text-[var(--fg-muted)] pt-1">Glide path to coast by age {profile.targetCoastAge}</p>
                 </th>
-                <th className="pb-2 align-top">
-                  <p className="text-xs font-semibold text-[var(--fg)]">Annual Target Investment</p>
-                  <p className="text-xs font-normal text-[var(--fg-muted)]">How much your portfolio needs to grow this year to be on track at the next age (contributions + returns)</p>
+                <th className="w-1/5 pb-2 align-top">
+                  <p className="text-xs font-semibold text-[var(--fg)]">Annual Growth</p>
+                  <p className="text-xs font-normal text-[var(--fg-muted)] pt-1">Portfolio growth needed this year to stay on track</p>
                 </th>
               </tr>
             </thead>
@@ -230,7 +231,6 @@ export function FireSummaryCards({ results, profile, onChange }: Props) {
           </table>
         </div>
       </Card>
-
 
     </div>
   );

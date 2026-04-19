@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Header, type AppTab } from "@/components/layout/Header";
+import { MethodologyModal } from "@/components/ui/MethodologyModal";
 import { ResultsDashboard } from "@/components/results/ResultsDashboard";
 import { WhatIfPanel } from "@/components/whatif/WhatIfPanel";
 import { RelocationPanel } from "@/components/location/RelocationPanel";
@@ -12,6 +13,7 @@ export default function FireApp() {
   const { profile, hydrate, updateProfile, resetProfile, hydrated, isSetupComplete, markSetupComplete } = useFireProfile();
   const [activeTab, setActiveTab] = useState<AppTab>("results");
   const [showWizard, setShowWizard] = useState(false);
+  const [showMethodology, setShowMethodology] = useState(false);
   useEffect(() => { hydrate(); }, [hydrate]);
   const results = useFireCalculations(profile);
 
@@ -19,6 +21,7 @@ export default function FireApp() {
     <div className="min-h-screen">
       <Header
         onReset={resetProfile}
+        onOpenMethodology={() => setShowMethodology(true)}
         showTabs={isSetupComplete}
         activeTab={activeTab}
         onTabChange={setActiveTab}
@@ -28,7 +31,7 @@ export default function FireApp() {
 
         {/* First-time landing */}
         {hydrated && !isSetupComplete && !showWizard && (
-          <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 text-center">
+          <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 text-center">
             <h1 className="text-3xl font-bold text-[var(--fg)]">Plan your FIRE journey</h1>
             <p className="text-[var(--fg-muted)] max-w-sm">
               Answer a few questions about your finances and we&apos;ll show you exactly when you can retire.
@@ -38,6 +41,12 @@ export default function FireApp() {
               className="px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-base transition-colors"
             >
               Get Started →
+            </button>
+            <button
+              onClick={() => setShowMethodology(true)}
+              className="text-sm text-[var(--fg-muted)] hover:text-[var(--fg)] underline underline-offset-4 transition-colors"
+            >
+              Learn about FIRE
             </button>
           </div>
         )}
@@ -73,6 +82,8 @@ export default function FireApp() {
           onClose={isSetupComplete ? () => setShowWizard(false) : undefined}
         />
       )}
+
+      <MethodologyModal open={showMethodology} onClose={() => setShowMethodology(false)} />
 
       <footer className="border-t border-[var(--border)] py-4 mt-8">
         <p className="text-center text-xs text-[var(--fg-muted)]">
