@@ -46,8 +46,8 @@ export function Header({ onReset, onOpenMethodology, showTabs, activeTab, onTabC
                 <div
                   className="absolute inset-y-0.5 rounded-md bg-[var(--bg-card)] dark:bg-white/[0.1] shadow-sm pointer-events-none"
                   style={{
-                    width: `${100 / APP_TABS.length}%`,
-                    transform: `translateX(${activeIndex * 100}%)`,
+                    width: `calc((100% - 4px) / ${APP_TABS.length})`,
+                    transform: `translateX(calc(${activeIndex * 100}% + 2px))`,
                     transition: "transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
                   }}
                 />
