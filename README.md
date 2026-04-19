@@ -1,73 +1,62 @@
-# FIRE Calculator
+# CoastFI
 
-**Plan your path to Financial Independence, Retire Early - entirely in your browser.**
+### Know exactly when you can stop trying so hard.
 
-FIRE Calculator is a personal finance tool that models your FIRE and Coast FIRE timelines based on your real income, expenses, investments, and location. No accounts, no servers, no data leaving your device.
-
----
-
-## What it does
-
-Enter your financial profile once and get a real-time dashboard showing:
-
-- **When you can retire** - exact year and age based on your current savings rate
-- **Your FIRE number** - portfolio size needed to sustain your retirement expenses
-- **Coast FIRE progress** - when you can stop contributing and let compound growth do the rest
-- **What-If scenarios** - model changes to contributions, expenses, or return assumptions
-- **Relocation analysis** - compare cost-of-living across all 50 US states to see how moving accelerates your timeline
+CoastFI shows you the moment your investments can grow to retirement on their own — no more contributions needed. Most people chase a single "retirement number." CoastFI shows you the earlier, more achievable milestone: the point where compound growth does the heavy lifting for you.
 
 ---
 
-## Key Features
+## Your retirement, mapped out
 
-**Results Dashboard**
-- Retirement goal card with inline-editable target age
-- FIRE number and progress ring (% of FIRE number reached today)
-- Coast FIRE today - current coast number with progress percentage
-- Coast Goals - target coasting age with progress ring
-- Time to FIRE and predicted coast age with year/age sub-labels
-- Coast FIRE by Age table - per-year glide path with on-track benchmarks and annual growth needed
+Enter your income, expenses, and savings once. Get a complete picture of your financial independence timeline — updated live as you adjust your numbers.
 
-**What-If Panel**
-- Sliders for monthly contribution, retirement expenses, and real return rate
-- Live re-calculation of FIRE year, FIRE number, and years saved/lost vs. baseline
-
-**Relocate Panel**
-- State selector to set your current location
-- Cost-of-living adjusted expense comparison across all US states
-- Ranked list of states with years-to-FIRE delta and projected savings
-
-**Setup Wizard**
-- 3-step onboarding: Personal → Finances → Assumptions
-- Expense breakdown by 15 categories with auto-calculated retirement estimate
-- Inline editable values on the results dashboard for quick updates
-
-**UX**
-- Dark / light mode toggle
-- Animated sliding tab navigation
-- All data persisted in localStorage - works offline, no login required
-- Methodology modal explaining FIRE and Coast FIRE concepts
+- **FIRE number** — the exact portfolio size that lets you retire on your terms
+- **Coast FI date** — when you can stop contributing entirely and still retire on time
+- **Years to freedom** — how far away each milestone really is, in years and age
 
 ---
 
-## Calculation Approach
+## What makes it different
 
-All projections use **real (inflation-adjusted) returns**. Portfolio growth, FIRE number, and Coast FIRE number are all expressed in today's dollars.
+**Coast FIRE is front and center.**
+Most calculators show you one number and call it done. CoastFI breaks your journey into stages — when you can coast, when you can retire — so you have a nearer target to work toward.
 
-- **FIRE Number** = Annual Retirement Expenses ÷ Safe Withdrawal Rate
-- **Coast FIRE Number** = FIRE Number ÷ (1 + real return) ^ years to retirement
-- **Years to FIRE** = binary search over compound growth function to find when portfolio crosses FIRE number
-- **Retirement expenses** default to 80% of current expenses, adjustable by lifestyle factor or per-category multipliers
+**Every state in the US, built in.**
+Thinking about moving? The Relocate tab shows how each state's cost of living changes your timeline. Some moves can shave years off your FIRE date.
+
+**Model any scenario, instantly.**
+Adjust your contribution, spending, or expected return with a slider. Watch your retirement date shift in real time. No spreadsheet required.
+
+**Your data never leaves your device.**
+No account. No login. No tracking. Everything is stored locally in your browser.
+
+---
+
+## Three views, one goal
+
+**Calculator** — Your full FIRE dashboard. See your FIRE number, coast number, time to each milestone, and a year-by-year glide path showing whether you're on track.
+
+**What-If** — Drag a slider to see what happens if you invest $500 more per month, cut expenses by 10%, or assume a different market return. Instant answers to your real questions.
+
+**Relocate** — Compare your retirement timeline across all 50 states. See exactly which moves accelerate your path to financial independence and by how much.
+
+---
+
+## The math, briefly
+
+All projections are in today's dollars — inflation-adjusted so the numbers stay meaningful.
+
+- FIRE Number = Annual Retirement Expenses / Safe Withdrawal Rate
+- Coast FI Number = FIRE Number / (1 + annual return) ^ years until retirement
+- Once your portfolio hits your Coast FI number, you're done contributing. Compound growth carries you the rest of the way.
 
 ---
 
 ## Version
 
-**v0.1.0** - Initial release  
-Calculator · What-If · Relocate tabs  
-All 50 US states supported  
-No backend, no tracking
+**v0.1.0**  
+All 50 US states · Coast FIRE by age table · What-If scenarios · Dark mode
 
 ---
 
-*Not financial advice. All projections are estimates based on the assumptions you provide.*
+*Not financial advice. All projections depend on the assumptions you provide.*
