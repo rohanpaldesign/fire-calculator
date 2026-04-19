@@ -189,6 +189,17 @@ export function calcFireResults(profile: FireProfile, overrides?: WhatIfOverride
   }
 
   const yearsToFire = calcYearsToFire(profile.currentAssets, monthlyContrib, realReturn, fireNumber);
+
+  // predictedCoastAge can never logically exceed the integer FIRE age: for ages ≥ retirementAge,
+  // the coast condition (portfolio ≥ fireNumber) is identical to FIRE. Rounding in Math.round
+  // vs the integer-year loop can cause the loop to find a later age than fireAge — cap it.
+  if (predictedCoastAge !== null && yearsToFire !== null) {
+    const integerFireAge = Math.ceil(profile.currentAge + yearsToFire);
+    if (predictedCoastAge > integerFireAge) {
+      predictedCoastAge = integerFireAge;
+    }
+  }
+
   const fireDate = yearsToFire != null ? new Date(new Date().getFullYear() + Math.ceil(yearsToFire), 0, 1) : null;
   const fireAge = yearsToFire !== null ? Math.round(profile.currentAge + yearsToFire) : null;
 

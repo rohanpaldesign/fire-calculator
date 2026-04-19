@@ -97,7 +97,9 @@ export function FireSummaryCards({ results, profile, onChange }: Props) {
                   <p className="text-xs text-[var(--fg-muted)] mt-0.5">
                     {timeline.predictedCoastAge <= profile.currentAge
                       ? "Can coast now"
-                      : `${profile.retirementAge - timeline.predictedCoastAge} yrs from retirement`}
+                      : timeline.predictedCoastAge >= profile.retirementAge
+                        ? "at retirement"
+                        : `${profile.retirementAge - timeline.predictedCoastAge} yrs from retirement`}
                   </p>
                 </>
               ) : (
