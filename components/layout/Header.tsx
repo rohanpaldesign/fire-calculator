@@ -41,12 +41,12 @@ export function Header({ onReset, onOpenMethodology, showTabs, activeTab, onTabC
           {showTabs && (() => {
             const activeIndex = APP_TABS.findIndex(t => t.id === activeTab);
             return (
-              <div className="relative flex items-center rounded-lg bg-[var(--border)]/40">
-                {/* Sliding pill */}
+              <div className="relative flex items-center rounded-lg bg-[var(--border)]/40 p-0.5">
+                {/* Sliding pill — left-0.5 pins origin to the content area start (after container padding) */}
                 <div
-                  className="absolute inset-y-0.5 rounded-md bg-[var(--bg-card)] dark:bg-white/[0.1] shadow-sm pointer-events-none"
+                  className="absolute inset-y-0.5 left-0.5 rounded-md bg-[var(--bg-card)] dark:bg-white/[0.1] shadow-sm pointer-events-none"
                   style={{
-                    width: `${100 / APP_TABS.length}%`,
+                    width: `calc((100% - 4px) / ${APP_TABS.length})`,
                     transform: `translateX(${activeIndex * 100}%)`,
                     transition: "transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
                   }}
