@@ -61,37 +61,6 @@ All projections use **real (inflation-adjusted) returns**. Portfolio growth, FIR
 
 ---
 
-## Tech Stack
-
-| Layer | Technology |
-|---|---|
-| Framework | Next.js 16 (App Router, static export) |
-| Language | TypeScript (strict) |
-| Styling | Tailwind CSS v4 with CSS custom properties |
-| Charts | Recharts |
-| UI Primitives | Radix UI |
-| Icons | Lucide React |
-| Fonts | Geist (via next/font) |
-| Storage | localStorage (no backend) |
-| Hosting | GitHub Pages |
-
----
-
-## Running Locally
-
-```bash
-npm install
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000).
-
-```bash
-npm run build   # static export to /out
-```
-
----
-
 ## Version
 
 **v0.1.0** — Initial release  
