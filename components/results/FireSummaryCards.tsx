@@ -151,18 +151,14 @@ export function FireSummaryCards({ results, profile, onChange }: Props) {
         </Card>
 
         <Card>
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1 min-w-0">
-              <CardTitle>Coast FIRE Today</CardTitle>
-              <CardValue className="text-indigo-600 dark:text-indigo-400">{formatCurrency(numbers.coastFireNumber, true)}</CardValue>
-              <CardDescription>
-                If you stopped contributing right now, compound growth alone would reach your FIRE number by age {profile.retirementAge}.
-              </CardDescription>
-            </div>
-            <div className="shrink-0">
-              <ProgressRing progress={progress.coastFireProgress} label="Coast FIRE" size={90} />
-            </div>
-          </div>
+          <CardTitle>Coast FIRE Today</CardTitle>
+          <CardValue className="text-indigo-600 dark:text-indigo-400">{formatCurrency(numbers.coastFireNumber, true)}</CardValue>
+          <CardDescription>
+            If you stopped contributing right now, compound growth alone would reach your FIRE number by age {profile.retirementAge}.
+          </CardDescription>
+          <p className="text-xs text-[var(--fg-muted)] mt-3 pt-3 border-t border-[var(--border)]">
+            You are at <span className="font-semibold text-[var(--fg)]">{Math.round(progress.coastFireProgress * 100)}%</span> of this target today. Reach 100% to stop contributing and still retire on time.
+          </p>
         </Card>
 
       </div>

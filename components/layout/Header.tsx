@@ -38,23 +38,33 @@ export function Header({ onReset, onOpenMethodology, showTabs, activeTab, onTabC
 
         {/* Right: tab group + action icons */}
         <div className="flex items-center gap-2">
-          {showTabs && (
-            <div className="flex items-center rounded-lg bg-[var(--border)]/40 p-0.5">
-              {APP_TABS.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => onTabChange?.(tab.id)}
-                  className={`px-3.5 py-1.5 rounded-md text-sm font-medium transition-all duration-200 ease-in-out ${
-                    activeTab === tab.id
-                      ? "bg-[var(--bg-card)] dark:bg-slate-600 text-emerald-500 shadow-sm"
-                      : "text-[var(--fg-muted)] hover:text-[var(--fg)]"
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-          )}
+          {showTabs && (() => {
+            const activeIndex = APP_TABS.findIndex(t => t.id === activeTab);
+            return (
+              <div className="relative flex items-center rounded-lg bg-[var(--border)]/40 p-0.5">
+                {/* Sliding pill */}
+                <div
+                  className="absolute inset-y-0.5 rounded-md bg-[var(--bg-card)] dark:bg-white/[0.1] shadow-sm pointer-events-none"
+                  style={{
+                    width: `${100 / APP_TABS.length}%`,
+                    transform: `translateX(${activeIndex * 100}%)`,
+                    transition: "transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+                  }}
+                />
+                {APP_TABS.map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => onTabChange?.(tab.id)}
+                    className={`relative z-10 flex-1 px-3.5 py-1.5 rounded-md text-sm font-medium transition-colors duration-200 ${
+                      activeTab === tab.id ? "text-emerald-500" : "text-[var(--fg-muted)] hover:text-[var(--fg)]"
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+            );
+          })()}
 
           <button
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
