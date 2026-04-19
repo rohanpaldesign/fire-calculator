@@ -41,8 +41,11 @@ export function Header({ onReset, onOpenMethodology, showTabs, activeTab, onTabC
           {showTabs && (() => {
             const activeIndex = APP_TABS.findIndex(t => t.id === activeTab);
             return (
-              <div className="relative flex items-center rounded-lg bg-[var(--border)]/40 p-0.5">
-                {/* Sliding pill — left-0.5 pins origin to the content area start (after container padding) */}
+              <div
+                className="relative rounded-lg bg-[var(--border)]/40 p-0.5"
+                style={{ display: "grid", gridTemplateColumns: `repeat(${APP_TABS.length}, 1fr)` }}
+              >
+                {/* Sliding pill */}
                 <div
                   className="absolute inset-y-0.5 left-0.5 rounded-md bg-[var(--bg-card)] dark:bg-white/[0.1] shadow-sm pointer-events-none"
                   style={{
@@ -55,7 +58,7 @@ export function Header({ onReset, onOpenMethodology, showTabs, activeTab, onTabC
                   <button
                     key={tab.id}
                     onClick={() => onTabChange?.(tab.id)}
-                    className={`relative z-10 flex-1 px-3.5 py-1.5 rounded-md text-sm font-medium transition-colors duration-200 ${
+                    className={`relative z-10 px-3.5 py-1.5 rounded-md text-sm font-medium whitespace-nowrap transition-colors duration-200 ${
                       activeTab === tab.id ? "text-emerald-500" : "text-[var(--fg-muted)] hover:text-[var(--fg)]"
                     }`}
                   >
