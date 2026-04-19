@@ -1,6 +1,6 @@
 # FIRE Calculator
 
-**Plan your path to Financial Independence, Retire Early — entirely in your browser.**
+**Plan your path to Financial Independence, Retire Early - entirely in your browser.**
 
 FIRE Calculator is a personal finance tool that models your FIRE and Coast FIRE timelines based on your real income, expenses, investments, and location. No accounts, no servers, no data leaving your device.
 
@@ -10,11 +10,11 @@ FIRE Calculator is a personal finance tool that models your FIRE and Coast FIRE 
 
 Enter your financial profile once and get a real-time dashboard showing:
 
-- **When you can retire** — exact year and age based on your current savings rate
-- **Your FIRE number** — portfolio size needed to sustain your retirement expenses
-- **Coast FIRE progress** — when you can stop contributing and let compound growth do the rest
-- **What-If scenarios** — model changes to contributions, expenses, or return assumptions
-- **Relocation analysis** — compare cost-of-living across all 50 US states to see how moving accelerates your timeline
+- **When you can retire** - exact year and age based on your current savings rate
+- **Your FIRE number** - portfolio size needed to sustain your retirement expenses
+- **Coast FIRE progress** - when you can stop contributing and let compound growth do the rest
+- **What-If scenarios** - model changes to contributions, expenses, or return assumptions
+- **Relocation analysis** - compare cost-of-living across all 50 US states to see how moving accelerates your timeline
 
 ---
 
@@ -23,10 +23,10 @@ Enter your financial profile once and get a real-time dashboard showing:
 **Results Dashboard**
 - Retirement goal card with inline-editable target age
 - FIRE number and progress ring (% of FIRE number reached today)
-- Coast FIRE today — current coast number with progress percentage
-- Coast Goals — target coasting age with progress ring
+- Coast FIRE today - current coast number with progress percentage
+- Coast Goals - target coasting age with progress ring
 - Time to FIRE and predicted coast age with year/age sub-labels
-- Coast FIRE by Age table — per-year glide path with on-track benchmarks and annual growth needed
+- Coast FIRE by Age table - per-year glide path with on-track benchmarks and annual growth needed
 
 **What-If Panel**
 - Sliders for monthly contribution, retirement expenses, and real return rate
@@ -45,7 +45,7 @@ Enter your financial profile once and get a real-time dashboard showing:
 **UX**
 - Dark / light mode toggle
 - Animated sliding tab navigation
-- All data persisted in localStorage — works offline, no login required
+- All data persisted in localStorage - works offline, no login required
 - Methodology modal explaining FIRE and Coast FIRE concepts
 
 ---
@@ -63,7 +63,7 @@ All projections use **real (inflation-adjusted) returns**. Portfolio growth, FIR
 
 ## Version
 
-**v0.1.0** — Initial release  
+**v0.1.0** - Initial release  
 Calculator · What-If · Relocate tabs  
 All 50 US states supported  
 No backend, no tracking
