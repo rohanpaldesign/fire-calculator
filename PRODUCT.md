@@ -75,15 +75,25 @@ Inline-editable fields at the top of the dashboard for the most-changed values:
 - Coast FIRE number as of today
 - Text: "You are at X% of this target today. Reach 100% to stop contributing and still retire on time."
 
+#### Real vs Nominal Toggle
+Pill toggle above the summary cards: "Today's $" (default) / "Future $".
+
+- **Today's $** — all dollar figures in inflation-adjusted, real terms (today's purchasing power)
+- **Future $** — all dollar figures in nominal terms (what the user will see in their bank account)
+
+Affects: FIRE Number, Coast FIRE Today, Coast Target at {age}, all three dollar columns in the Coast by Age table, and the portfolio growth chart (curves + reference lines). Does not affect progress rings, time-to-FIRE, predicted coast age, or current portfolio/contribution inputs.
+
+State (location) has no special handling in this toggle — the COL adjustment is already baked into the expense and FIRE number before nominal conversion. The toggle is purely a time-value-of-money presentation layer using the user's configured inflation rate.
+
 #### Coast FIRE by Age Table
 Per-year breakdown from currentAge to targetCoastAge:
 - Age
 - Coast Target (stop contributing at this age to coast to FIRE by retirement)
-- Portfolio (projected at current contribution rate, real terms)
+- Portfolio (projected at current contribution rate)
 - On-Track Goal (glide path benchmark to reach coast target by targetCoastAge)
 - Annual Growth (incremental benchmark step year-over-year)
 
-Rows highlighted green when portfolio >= coastTarget for that age.
+All dollar columns switch between real and nominal based on the toggle. Rows highlighted green when portfolio >= coastTarget for that age (canCoast flag; unchanged by toggle).
 
 ---
 
@@ -170,12 +180,14 @@ interface FireProfile {
 interface FireResults {
   numbers: {
     fireNumber: number;                     // target portfolio in today's dollars
-    coastFireNumber: number;               // coast number as of today
-    coastFireAtTargetAge: number;          // coast number at targetCoastAge
+    coastFireNumber: number;               // coast number as of today (real)
+    coastFireAtTargetAge: number;          // coast number at targetCoastAge (real)
     leanFireNumber: number;                // at 5% SWR
     fatFireNumber: number;                 // at 3% SWR
     baristaFireNumber: number;             // reduced by part-time income
-    nominalFireNumber: number;             // fireNumber in future dollars
+    nominalFireNumber: number;             // fireNumber in future dollars (at FIRE date)
+    nominalCoastFireNumber: number;        // coast number as of today (nominal)
+    nominalCoastFireAtTargetAge: number;   // coast number at targetCoastAge (nominal)
     portfolioAtRetirementAge: number;
     portfolioAtFireDate: number | null;
   };
@@ -191,11 +203,24 @@ interface FireResults {
     fireAge: number | null;
     coastFireAchievedAge: number | null;
     predictedCoastAge: number | null;
-    coastByAge: CoastAgePoint[];
-    projectedPortfolioByYear: PortfolioDataPoint[];
+    coastByAge: CoastAgePoint[];           // each point has both real and nominal fields
+    projectedPortfolioByYear: PortfolioDataPoint[];        // real terms
+    nominalProjectedPortfolioByYear: PortfolioDataPoint[]; // nominal terms
     monthlyContribNeeded: number | null;
     expenseReductionNeeded: number | null;
   };
+}
+
+// CoastAgePoint carries both real and nominal values
+interface CoastAgePoint {
+  age: number;
+  coastTarget: number;           // real (today's dollars)
+  portfolio: number;             // real
+  canCoast: boolean;             // portfolio >= coastTarget (same in both modes)
+  onTrackBenchmark: number;      // real
+  nominalCoastTarget: number;    // nominal (future dollars at that age)
+  nominalPortfolio: number;      // nominal
+  nominalOnTrackBenchmark: number; // nominal
 }
 ```
 
@@ -240,9 +265,20 @@ Main orchestrator. Key computed values in order:
 
 ### Real vs nominal
 
-- **All projections use `realReturn`** — results are in today's purchasing power
-- `nominalReturn` field is stored but only used for the legacy `portfolioAtRetirementAge` field (nominal future value for reference)
-- `nominalFireNumber` = fireNumber × (1 + inflationRate)^yearsToFire, shown as a reference figure only
+All projections use `realReturn` for real-terms calculations and `nominalReturn` for nominal-terms calculations. Both sets of values are computed in every run and stored in `FireResults`; the UI toggle switches which set is displayed.
+
+**Nominal FIRE number at retirement** (anchor for all nominal coast calculations):
+`nominalFireNumberAtRetirement = fireNumber × (1 + inflationRate)^(retirementAge − currentAge)`
+
+Note: `nominalFireNumber` (in `FireNumbers`) is inflated to the FIRE *date* (yearsToFire), whereas `nominalFireNumberAtRetirement` is inflated to the *retirement age* — the correct anchor for discounting coast targets backwards.
+
+**Nominal coast target at age A**:
+`nominalCoastTarget = nominalFireNumberAtRetirement / (1 + nominalReturn)^(retirementAge − A)`
+
+**Nominal portfolio at age A**:
+`nominalPortfolio = FV(currentAssets, monthlyContrib, nominalReturn, A − currentAge)`
+
+**Why `nominalCoastFireNumber ≈ coastFireNumber`:** Inflating the FIRE target by inflation while also discounting at the nominal return (≈ real return + inflation) causes the two to cancel, yielding approximately the same present-day dollar amount. This is expected and correct — it means you need the same amount today in either framing.
 
 ---
 
@@ -306,7 +342,7 @@ Cards have no shadow — differentiated by border color and `--bg-card` backgrou
 
 **Privacy-first, no backend:** All data in localStorage. No telemetry, no accounts, no server. Static export to GitHub Pages. Future auth (profile icon placeholder) deferred.
 
-**Real-terms projections only:** Using `realReturn` throughout eliminates the need to show inflation-adjusted vs nominal comparisons to users. "Today's dollars" framing is simpler and more actionable.
+**Real-terms default, nominal toggle:** The default view uses `realReturn` throughout — "today's dollars" framing is simpler and more actionable for planning. A toggle lets users switch to nominal ("future dollars") to see what they'll actually observe in their accounts. Both sets of values are computed on every calculation run; the toggle is purely a display-layer switch.
 
 **Inline editing on dashboard:** Rather than a settings page, values can be tweaked directly on the results cards (EditableValue component). Setup wizard is for full re-configuration only.
 
@@ -371,3 +407,4 @@ types/
 | Version | Date | Notes |
 |---|---|---|
 | 0.1.0 | 2026-04 | Initial release — Calculator, What-If, Relocate tabs; all 50 states; Coast FIRE by age table; sliding pill nav; dark/light mode |
+| 0.2.0 | 2026-05 | Real vs nominal toggle — "Today's $" / "Future $" switch on results dashboard; nominal values computed for all cards, table, and chart |
