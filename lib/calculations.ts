@@ -158,6 +158,17 @@ export function calcFireResults(profile: FireProfile, overrides?: WhatIfOverride
     ? calcMonthlyContribNeeded(profile.currentAssets, realReturn, coastFireAtTargetAge, yearsToCoast)
     : 0;
 
+  // Nominal FIRE number at retirement (fixed reference point for all nominal coast calculations)
+  const nominalFireNumberAtRetirement = Math.round(
+    fireNumber * Math.pow(1 + profile.inflationRate, profile.retirementAge - profile.currentAge)
+  );
+  const nominalCoastFireAtTargetAge = Math.round(
+    nominalFireNumberAtRetirement / Math.pow(1 + profile.nominalReturn, profile.retirementAge - safeTargetCoastAge)
+  );
+  const nominalRecommendedMonthly = yearsToCoast > 0
+    ? calcMonthlyContribNeeded(profile.currentAssets, profile.nominalReturn, nominalCoastFireAtTargetAge, yearsToCoast)
+    : 0;
+
   // Coast by age table: for each integer age from currentAge to targetCoastAge,
   // coast target (at that age), projected portfolio (real return, today's dollars),
   // and on-track benchmark (ideal glide path using recommendedMonthly)
@@ -168,7 +179,13 @@ export function calcFireResults(profile: FireProfile, overrides?: WhatIfOverride
     const coastTarget = Math.round(calcCoastFireNumber(fireNumber, realReturn, age, profile.retirementAge));
     const canCoast = portfolio >= coastTarget;
     const onTrackBenchmark = Math.round(futureValue(profile.currentAssets, recommendedMonthly, realReturn, yearsFromNow));
-    coastByAge.push({ age, coastTarget, portfolio, canCoast, onTrackBenchmark });
+    const nominalCoastTarget = Math.round(
+      nominalFireNumberAtRetirement / Math.pow(1 + profile.nominalReturn, profile.retirementAge - age)
+    );
+    const nominalPortfolio = Math.round(futureValue(profile.currentAssets, monthlyContrib, profile.nominalReturn, yearsFromNow));
+    const nominalOnTrackBenchmark = Math.round(futureValue(profile.currentAssets, nominalRecommendedMonthly, profile.nominalReturn, yearsFromNow));
+    coastByAge.push({ age, coastTarget, portfolio, canCoast, onTrackBenchmark,
+                      nominalCoastTarget, nominalPortfolio, nominalOnTrackBenchmark });
   }
 
   // Predicted coast age: first age where portfolio (with contributions) >= coast target AT THAT AGE
@@ -205,6 +222,9 @@ export function calcFireResults(profile: FireProfile, overrides?: WhatIfOverride
 
   const yearsUntilFire = yearsToFire ?? Math.max(0, profile.retirementAge - profile.currentAge);
   const nominalFireNumber = Math.round(fireNumber * Math.pow(1 + profile.inflationRate, yearsUntilFire));
+  const nominalCoastFireNumber = Math.round(
+    nominalFireNumberAtRetirement / Math.pow(1 + profile.nominalReturn, profile.retirementAge - profile.currentAge)
+  );
   const yearsToRetirement = Math.max(0, profile.retirementAge - profile.currentAge);
   const portfolioAtRetirementAge = Math.round(futureValue(profile.currentAssets, monthlyContrib, profile.nominalReturn, yearsToRetirement));
   const portfolioAtFireDate = yearsToFire !== null
@@ -212,6 +232,7 @@ export function calcFireResults(profile: FireProfile, overrides?: WhatIfOverride
     : null;
 
   const portfolioTimeline = buildPortfolioTimeline(profile, fireNumber, monthlyContrib, realReturn);
+  const nominalPortfolioTimeline = buildPortfolioTimeline(profile, nominalFireNumberAtRetirement, monthlyContrib, profile.nominalReturn);
   const coastFireAchievedAge = findCoastFireAge(portfolioTimeline);
   const yearsAvailable = profile.retirementAge - profile.currentAge;
   const monthlyContribNeeded = yearsToFire === null
@@ -232,7 +253,8 @@ export function calcFireResults(profile: FireProfile, overrides?: WhatIfOverride
     numbers: {
       fireNumber, coastFireNumber, coastFireAtTargetAge,
       leanFireNumber, fatFireNumber, baristaFireNumber,
-      nominalFireNumber, portfolioAtRetirementAge, portfolioAtFireDate,
+      nominalFireNumber, nominalCoastFireNumber, nominalCoastFireAtTargetAge,
+      portfolioAtRetirementAge, portfolioAtFireDate,
     },
     progress: {
       fireProgress: profile.currentAssets / fireNumber,
@@ -244,6 +266,7 @@ export function calcFireResults(profile: FireProfile, overrides?: WhatIfOverride
       yearsToFire, fireDate, fireAge,
       coastFireAchievedAge, predictedCoastAge, coastByAge,
       projectedPortfolioByYear: portfolioTimeline,
+      nominalProjectedPortfolioByYear: nominalPortfolioTimeline,
       monthlyContribNeeded, expenseReductionNeeded,
     },
   };

@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import dynamic from "next/dynamic";
 import { FireSummaryCards } from "./FireSummaryCards";
 import { Card } from "@/components/ui/card";
@@ -19,6 +20,7 @@ interface Props {
 export function ResultsDashboard({ results, profile, onChange, onEditAll }: Props) {
   const { timeline } = results;
   const hasCategories = Object.values(profile.expenseCategories ?? {}).some((v) => (v ?? 0) > 0);
+  const [showNominal, setShowNominal] = useState(false);
 
   const effectiveRetirementExpenses = profile.retirementExpensesMode === "auto"
     ? calcAutoRetirementExpenses(profile)
@@ -73,14 +75,33 @@ export function ResultsDashboard({ results, profile, onChange, onEditAll }: Prop
         </button>
       </div>
 
-      <FireSummaryCards results={results} profile={profile} onChange={onChange} />
+      {/* Real vs Nominal toggle */}
+      <div className="flex items-center justify-end gap-1 px-1">
+        <span className="text-xs text-[var(--fg-muted)] mr-2">Show values in:</span>
+        {(["Today's $", "Future $"] as const).map((label, i) => (
+          <button
+            key={label}
+            onClick={() => setShowNominal(i === 1)}
+            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+              showNominal === (i === 1)
+                ? "bg-emerald-600 text-white"
+                : "text-[var(--fg-muted)] hover:text-[var(--fg)]"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      <FireSummaryCards results={results} profile={profile} onChange={onChange} showNominal={showNominal} />
 
       <Card>
         <PortfolioChart
-          data={timeline.projectedPortfolioByYear}
+          data={showNominal ? timeline.nominalProjectedPortfolioByYear : timeline.projectedPortfolioByYear}
           fireDate={timeline.fireDate}
           coastFireAchievedAge={timeline.coastFireAchievedAge}
           currentAge={profile.currentAge}
+          showNominal={showNominal}
         />
       </Card>
 

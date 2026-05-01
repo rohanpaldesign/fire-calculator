@@ -47,10 +47,13 @@ export interface FireProfile {
 
 export interface CoastAgePoint {
   age: number;
-  coastTarget: number;      // coast FIRE target if you stop contributing at this exact age
-  portfolio: number;        // projected portfolio at this age (real terms, with current contributions)
-  canCoast: boolean;        // portfolio >= coastTarget (could stop contributing at this age)
-  onTrackBenchmark: number; // portfolio value on the ideal glide path from currentAssets to coastFireAtTargetAge using the recommended monthly contribution
+  coastTarget: number;
+  portfolio: number;
+  canCoast: boolean;
+  onTrackBenchmark: number;
+  nominalCoastTarget: number;
+  nominalPortfolio: number;
+  nominalOnTrackBenchmark: number;
 }
 
 export interface FireNumbers {
@@ -61,6 +64,8 @@ export interface FireNumbers {
   fatFireNumber: number;
   baristaFireNumber: number;
   nominalFireNumber: number;
+  nominalCoastFireNumber: number;
+  nominalCoastFireAtTargetAge: number;
   portfolioAtRetirementAge: number;
   portfolioAtFireDate: number | null;
 }
@@ -85,6 +90,7 @@ export interface FireTimeline {
   predictedCoastAge: number | null;
   coastByAge: CoastAgePoint[];
   projectedPortfolioByYear: PortfolioDataPoint[];
+  nominalProjectedPortfolioByYear: PortfolioDataPoint[];
   monthlyContribNeeded: number | null;
   expenseReductionNeeded: number | null;
 }

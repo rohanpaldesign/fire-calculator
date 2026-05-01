@@ -2,7 +2,7 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, ResponsiveContainer, Legend } from "recharts";
 import type { PortfolioDataPoint } from "@/types/fire";
 import { formatCurrency } from "@/lib/formatters";
-interface Props { data: PortfolioDataPoint[]; fireDate: Date|null; coastFireAchievedAge: number|null; currentAge: number; }
+interface Props { data: PortfolioDataPoint[]; fireDate: Date|null; coastFireAchievedAge: number|null; currentAge: number; showNominal?: boolean; }
 const CustomTooltip = ({ active, payload, label }: { active?:boolean; payload?:Array<{name:string;value:number;color:string}>; label?:number }) => {
   if (!active || !payload?.length) return null;
   return (
@@ -12,14 +12,17 @@ const CustomTooltip = ({ active, payload, label }: { active?:boolean; payload?:A
     </div>
   );
 };
-export default function PortfolioChart({ data, coastFireAchievedAge, currentAge }: Props) {
+export default function PortfolioChart({ data, coastFireAchievedAge, currentAge, showNominal = false }: Props) {
   const firePoint = data.find((d)=>d.portfolioValue>=d.fireTarget);
   const coastPoint = coastFireAchievedAge ? data.find((d)=>d.age===coastFireAchievedAge) : null;
   return (
     <div>
       <div className="mb-3">
         <h3 className="text-sm font-semibold text-[var(--fg-muted)] uppercase tracking-wide">Portfolio Growth Projection</h3>
-        {firePoint && <p className="text-xs text-[var(--fg-muted)] mt-0.5">Hits FIRE target at age {firePoint.age} ({firePoint.year}){coastPoint?` · Coast FIRE at age ${coastPoint.age}`:""}</p>}
+        <p className="text-xs text-[var(--fg-muted)] mt-0.5">
+          {showNominal ? "Nominal (future) dollars" : "Real (today's) dollars"}
+          {firePoint ? ` · Hits FIRE target at age ${firePoint.age} (${firePoint.year})${coastPoint ? ` · Coast FIRE at age ${coastPoint.age}` : ""}` : ""}
+        </p>
       </div>
       <ResponsiveContainer width="100%" height={300}>
         <LineChart data={data} margin={{top:5,right:5,bottom:5,left:10}}>

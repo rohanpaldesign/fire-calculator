@@ -9,9 +9,10 @@ interface Props {
   results: FireResults;
   profile: FireProfile;
   onChange?: (patch: Partial<FireProfile>) => void;
+  showNominal?: boolean;
 }
 
-export function FireSummaryCards({ results, profile, onChange }: Props) {
+export function FireSummaryCards({ results, profile, onChange, showNominal = false }: Props) {
   const { numbers, progress, timeline } = results;
 
   const fireYear = timeline.fireDate ? timeline.fireDate.getFullYear() : null;
@@ -41,9 +42,11 @@ export function FireSummaryCards({ results, profile, onChange }: Props) {
               <CardDescription>Target age to stop working</CardDescription>
               <div className="mt-3 pt-3 border-t border-[var(--border)]">
                 <p className="text-xs font-semibold text-[var(--fg)] mb-0.5">FIRE Number</p>
-                <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(numbers.fireNumber, true)}</p>
+                <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                  {formatCurrency(showNominal ? numbers.nominalFireNumber : numbers.fireNumber, true)}
+                </p>
                 <p className="text-xs text-[var(--fg-muted)] mt-0.5">
-                  Portfolio needed at {(profile.safeWithdrawalRate * 100).toFixed(1)}% SWR &middot; today&apos;s dollars
+                  Portfolio needed at {(profile.safeWithdrawalRate * 100).toFixed(1)}% SWR &middot; {showNominal ? "future dollars" : "today's dollars"}
                 </p>
               </div>
             </div>
@@ -141,7 +144,9 @@ export function FireSummaryCards({ results, profile, onChange }: Props) {
                 </div>
                 <div>
                   <p className="text-xs font-semibold text-[var(--fg)] mb-0.5">Coast Target at {profile.targetCoastAge}</p>
-                  <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{formatCurrency(numbers.coastFireAtTargetAge, true)}</p>
+                  <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+                    {formatCurrency(showNominal ? numbers.nominalCoastFireAtTargetAge : numbers.coastFireAtTargetAge, true)}
+                  </p>
                   <p className="text-xs text-[var(--fg-muted)] mt-0.5">Needed to coast to FIRE by {profile.retirementAge}</p>
                 </div>
               </div>
@@ -154,7 +159,9 @@ export function FireSummaryCards({ results, profile, onChange }: Props) {
 
         <Card>
           <CardTitle>Coast FIRE Today</CardTitle>
-          <CardValue className="text-indigo-600 dark:text-indigo-400">{formatCurrency(numbers.coastFireNumber, true)}</CardValue>
+          <CardValue className="text-indigo-600 dark:text-indigo-400">
+            {formatCurrency(showNominal ? numbers.nominalCoastFireNumber : numbers.coastFireNumber, true)}
+          </CardValue>
           <CardDescription>
             If you stopped contributing right now, compound growth alone would reach your FIRE number by age {profile.retirementAge}.
           </CardDescription>
@@ -196,24 +203,28 @@ export function FireSummaryCards({ results, profile, onChange }: Props) {
             </thead>
             <tbody>
               {timeline.coastByAge.map((pt, i) => {
-                const nextBenchmark = i < timeline.coastByAge.length - 1 ? timeline.coastByAge[i + 1].onTrackBenchmark : null;
-                const annualStep = nextBenchmark !== null ? nextBenchmark - pt.onTrackBenchmark : null;
+                const displayCoastTarget = showNominal ? pt.nominalCoastTarget : pt.coastTarget;
+                const displayPortfolio = showNominal ? pt.nominalPortfolio : pt.portfolio;
+                const displayBenchmark = showNominal ? pt.nominalOnTrackBenchmark : pt.onTrackBenchmark;
+                const nextPt = i < timeline.coastByAge.length - 1 ? timeline.coastByAge[i + 1] : null;
+                const nextBenchmark = nextPt ? (showNominal ? nextPt.nominalOnTrackBenchmark : nextPt.onTrackBenchmark) : null;
+                const annualStep = nextBenchmark !== null ? nextBenchmark - displayBenchmark : null;
                 return (
                 <tr
                   key={pt.age}
                   className={`border-b border-[var(--border)] last:border-0 ${pt.canCoast ? "bg-emerald-50/40 dark:bg-emerald-950/20" : ""}`}
                 >
                   <td className="py-2 pr-4 font-medium text-[var(--fg)]">{pt.age}</td>
-                  <td className="py-2 pr-4 text-[var(--fg-muted)]">{formatCurrency(pt.coastTarget, true)}</td>
-                  <td className="py-2 pr-4 text-[var(--fg)]">{formatCurrency(pt.portfolio, true)}</td>
+                  <td className="py-2 pr-4 text-[var(--fg-muted)]">{formatCurrency(displayCoastTarget, true)}</td>
+                  <td className="py-2 pr-4 text-[var(--fg)]">{formatCurrency(displayPortfolio, true)}</td>
                   <td className="py-2 pr-4">
-                    <p className={`text-xs font-medium ${pt.portfolio >= pt.onTrackBenchmark ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"}`}>
-                      {formatCurrency(pt.onTrackBenchmark, true)}
+                    <p className={`text-xs font-medium ${displayPortfolio >= displayBenchmark ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"}`}>
+                      {formatCurrency(displayBenchmark, true)}
                     </p>
                     <p className="text-xs text-[var(--fg-muted)]">
-                      {pt.portfolio >= pt.onTrackBenchmark
-                        ? `+${formatCurrency(pt.portfolio - pt.onTrackBenchmark, true)} ahead`
-                        : `${formatCurrency(pt.onTrackBenchmark - pt.portfolio, true)} behind`}
+                      {displayPortfolio >= displayBenchmark
+                        ? `+${formatCurrency(displayPortfolio - displayBenchmark, true)} ahead`
+                        : `${formatCurrency(displayBenchmark - displayPortfolio, true)} behind`}
                     </p>
                   </td>
                   <td className="py-2">
